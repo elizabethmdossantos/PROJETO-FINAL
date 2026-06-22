@@ -53,7 +53,7 @@ projeto-integrador-pdv/
 │
 ├── tests/                    # Testes Automatizados (Pytest)
 │   ├── conftest.py           # Fixtures globais (banco de testes)
-│   ├── test_api_vendas.py    # <- Seus testes de venda e estoque
+│   ├── test_api_vendas.py    # <- testes de venda e estoque
 │   └── test_api_caixa.py     # Respeitando os 70% de cobertura exigidos
 │
 ├── .gitignore

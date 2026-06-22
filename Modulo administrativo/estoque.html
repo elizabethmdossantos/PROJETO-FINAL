@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Estoque</title>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="logo.jpg" alt="Logo" class="logo" width="60" height="55">
+            <h1>Minha Empresa</h1>
+        </div>            
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="cadastro.html">Cadastro</a></li>
+            <li><a href="estoque.html">Estoque</a></li>
+            <li><a href="financeiro.html">Financeiro</a></li>
+            <li><a href="relatorios.html">Relatórios</a></li>
+        </ul>
+    </header>
+    <main>
+        <div class="container">
+            <h2>Gestão de Estoque</h2>
+            <p>Controle de produtos e movimentações diárias.</p>
+            
+            <div class="grid-container">
+                <div class="item">
+                    <h3>Produtos em Estoque</h3>
+                    <ul class="lista-custom">
+                        <li>Produto 1 - 15 un.</li>
+                        <li>Produto 2 - 8 un.</li>
+                    </ul>
+                </div>
+                <div class="item">
+                    <h3>Movimentação de Estoque</h3>
+                    <ul class="lista-custom">
+                        <li>Produto A: <span style="color: var(--success)">+10 (compra)</span>, <span style="color: #ef4444">-5 (venda)</span></li>
+                        <li>Produto B: <span style="color: var(--success)">+20 (compra)</span>, <span style="color: #ef4444">-10 (venda)</span></li>
+                        <li>Produto C: <span style="color: var(--success)">+15 (compra)</span>, <span style="color: #ef4444">-7 (venda)</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Minha Empresa. All rights reserved.</p>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Cadastro de Produtos</title>
+</head>
+<body>
+    <header>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="logo.jpg" alt="Logo" class="logo" width="60" height="55">
+            <h1>Minha Empresa</h1>
+        </div>            
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="cadastro.html">Cadastro</a></li>
+            <li><a href="estoque.html">Estoque</a></li>
+            <li><a href="financeiro.html">Financeiro</a></li>
+            <li><a href="relatorios.html">Relatórios</a></li>
+        </ul>
+    </header>
+    <main>
+        <div class="container">
+            <form action="#" method="POST">
+                <h2>Cadastro de Produtos</h2><br>
+                
+                <label for="nome-produto">Nome do Produto:</label>
+                <input type="text" id="nome-produto" name="nome-produto" required><br><br>
+                
+                <label for="codigo-produto">Código do Produto:</label>
+                <input type="number" id="codigo-produto" name="codigo-produto" required><br><br>
+                
+                <label for="preco-custo">Preço de Custo:</label>
+                <input type="number" step="0.01" id="preco-custo" name="preco-custo" required><br><br>
+                
+                <label for="preco-venda">Preço de Venda:</label>
+                <input type="number" step="0.01" id="preco-venda" name="preco-venda" required><br><br>
+                
+                <label for="categoria">Categoria do Produto:</label>
+                <input type="text" id="categoria" name="categoria" required><br><br>
+                
+                <label for="quantidade">Quantidade em Estoque:</label>
+                <input type="number" id="quantidade" name="quantidade" required><br><br>
+                
+                <input type="submit" value="Cadastrar">
+            </form>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 Minha Empresa. All rights reserved.</p>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>

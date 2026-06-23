@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Login e Cadastro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Tela de Login -->
+        <div id="loginForm" class="form-container">
+            <h2>Login</h2>
+            <form id="login">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required placeholder="Digite seu email">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" required placeholder="Digite sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary">Entrar</button>
+                <p class="toggle-text">
+                    Não tem uma conta? <a href="#" onclick="showRegister()">Cadastre-se</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- Tela de Cadastro -->
+        <div id="registerForm" class="form-container" style="display: none;">
+            <h2>Cadastro</h2>
+            <form id="register">
+                <div class="form-group">
+                    <label for="registerName">Nome Completo</label>
+                    <input type="text" id="registerName" required placeholder="Digite seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required placeholder="Digite seu email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Senha</label>
+                    <input type="password" id="registerPassword" required placeholder="Digite sua senha (mínimo 6 caracteres)">
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Confirmar Senha</label>
+                    <input type="password" id="registerConfirmPassword" required placeholder="Confirme sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary">Cadastrar</button>
+                <p class="toggle-text">
+                    Já tem uma conta? <a href="#" onclick="showLogin()">Faça login</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- Tela de Dashboard (após login) -->
+        <div id="dashboard" class="dashboard" style="display: none;">
+            <h2>Bem-vindo!</h2>
+            <p id="userName">Usuário</p>
+            <button onclick="logout()" class="btn btn-danger">Sair</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

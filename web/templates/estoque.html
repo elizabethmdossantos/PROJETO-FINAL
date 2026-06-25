@@ -13,11 +13,11 @@
             <h1>Minha Empresa</h1>
         </div>            
         <ul>
-            <li><a href="dashboard_admin.html">Dashboard</a></li>
-            <li><a href="cadastro_produto.html">Cadastro</a></li>
-            <li><a href="estoque.html">Estoque</a></li>
-            <li><a href="financeiro.html">Financeiro</a></li>
-            <li><a href="relatorios.html">Relatórios</a></li>
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('cadastro_produto') }}">Cadastro</a></li>
+            <li><a href="{{ url_for('estoque') }}">Estoque</a></li>
+            <li><a href="{{ url_for('financeiro') }}">Financeiro</a></li>
+            <li><a href="{{ url_for('relatorios') }}">Relatórios</a></li>
         </ul>
     </header>
     <main>
@@ -25,20 +25,39 @@
             <h2>Gestão de Estoque</h2>
             <p>Controle de produtos e movimentações diárias.</p>
             
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="margin-bottom: 1rem;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
             <div class="grid-container">
                 <div class="item">
                     <h3>Produtos em Estoque</h3>
                     <ul class="lista-custom">
-                        <li>Produto 1 - 15 un.</li>
-                        <li>Produto 2 - 8 un.</li>
+                        {% for produto in produtos %}
+                            <li>{{ produto.nome }} - {{ produto.quantidade }} un.</li>
+                        {% else %}
+                            <li>Nenhum produto cadastrado.</li>
+                        {% endfor %}
                     </ul>
                 </div>
                 <div class="item">
                     <h3>Movimentação de Estoque</h3>
                     <ul class="lista-custom">
-                        <li>Produto A: <span style="color: var(--success)">+10 (compra)</span>, <span style="color: #ef4444">-5 (venda)</span></li>
-                        <li>Produto B: <span style="color: var(--success)">+20 (compra)</span>, <span style="color: #ef4444">-10 (venda)</span></li>
-                        <li>Produto C: <span style="color: var(--success)">+15 (compra)</span>, <span style="color: #ef4444">-7 (venda)</span></li>
+                        {% for mov in movimentacoes %}
+                            <li>
+                                {{ mov.produto_nome }}: 
+                                <span style="color: var(--success)">+{{ mov.quantidade_entrada }} (compra)</span>, 
+                                <span style="color: #ef4444">-{{ mov.quantidade_saida }} (venda)</span>
+                            </li>
+                        {% else %}
+                            <li>Nenhuma movimentação registrada hoje.</li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>

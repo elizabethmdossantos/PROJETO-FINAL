@@ -13,35 +13,45 @@
             <h1>Minha Empresa</h1>
         </div>            
         <ul>
-            <li><a href="dashboard_admin.html">Dashboard</a></li>
-            <li><a href="cadastro_produto.html">Cadastro</a></li>
-            <li><a href="estoque.html">Estoque</a></li>
-            <li><a href="financeiro.html">Financeiro</a></li>
-            <li><a href="relatorios.html">Relatórios</a></li>
+            <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            <li><a href="{{ url_for('cadastro_produto') }}">Cadastro</a></li>
+            <li><a href="{{ url_for('estoque') }}">Estoque</a></li>
+            <li><a href="{{ url_for('financeiro') }}">Financeiro</a></li>
+            <li><a href="{{ url_for('relatorios') }}">Relatórios</a></li>
         </ul>
     </header>
     <main>
         <div class="container">
-            <form action="#" method="POST">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" style="margin-bottom: 1rem; padding: 10px; border-radius: 4px; font-weight: bold;">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('cadastro_produto') }}" method="POST">
                 <h2>Cadastro de Produtos</h2><br>
                 
                 <label for="nome-produto">Nome do Produto:</label>
                 <input type="text" id="nome-produto" name="nome-produto" required><br><br>
                 
                 <label for="codigo-produto">Código do Produto:</label>
-                <input type="number" id="codigo-produto" name="codigo-produto" required><br><br>
+                <input type="text" id="codigo-produto" name="codigo-produto" required><br><br>
                 
                 <label for="preco-custo">Preço de Custo:</label>
-                <input type="number" step="0.01" id="preco-custo" name="preco-custo" required><br><br>
+                <input type="number" step="0.01" min="0.00" id="preco-custo" name="preco-custo" required><br><br>
                 
                 <label for="preco-venda">Preço de Venda:</label>
-                <input type="number" step="0.01" id="preco-venda" name="preco-venda" required><br><br>
+                <input type="number" step="0.01" min="0.00" id="preco-venda" name="preco-venda" required><br><br>
                 
                 <label for="categoria">Categoria do Produto:</label>
                 <input type="text" id="categoria" name="categoria" required><br><br>
                 
                 <label for="quantidade">Quantidade em Estoque:</label>
-                <input type="number" id="quantidade" name="quantidade" required><br><br>
+                <input type="number" min="0" id="quantidade" name="quantidade" required><br><br>
                 
                 <input type="submit" value="Cadastrar">
             </form>

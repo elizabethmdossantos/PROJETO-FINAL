@@ -1,0 +1,37 @@
+# --- Configurações de Ambiente e Segurança (CRÍTICO) ---
+.env
+.env.local
+.env.*.local
+
+# --- Ambientes Virtuais Python ---
+venv/
+.venv/
+env/
+ENV/
+pyvenv.cfg
+.python-version
+
+# --- Arquivos Temporários da sua API ---
+# Bloqueia a pasta de relatórios PDF/Excel temporários para não poluir o GitHub
+relatorios_temporarios/
+*.pdf
+*.xlsx
+
+# --- Caches do Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- Configurações de IDEs/Editores ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Arquivos de Sistema ---
+.DS_Store
+Thumbs.db

@@ -1,213 +1,101 @@
-import sys
-import os
-# Adiciona a pasta atual ('api') ao caminho de busca do Python
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-# Seus imports originais continuam aqui embaixo...
-from fastapi import FastAPI, HTTPException, status
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.database import obter_conexao
-from app.models.cadastro_produto import ProdutoCadastro
-from fastapi.responses import FileResponse
-
+"""
+Regras de negócio do sistema.
+Cria os enpoints.
+Ativa a segurança, verificando se o token de acesso é válido.
+Processa os dados.
+"""
+from fastapi import FastAPI, status, HTTPException, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import List
+# imporação de dados do outro arquivo (schemas)
+from schemas import (
+    ProdutoCadastro, ProdutoResposta, MovimentacaoResposta, 
+    ResumoDiarioResposta, FinanceiroResposta, UsuarioLogin, TokenResposta
+)
+# inicialização do FastAPI
 app = FastAPI(
     title="API de Gestão Comercial",
-    description="Núcleo do sistema - Controle de Estoque e Finanças",
+    description="Núcleo do Sistema - Autenticação e Mock de Dados",
     version="1.0.0"
 )
+# segurança HTTPBearer (padrão do token JWT)
+security = HTTPBearer()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# 1. CADASTRAR PRODUTO
-@app.post("/api/produtos", status_code=status.HTTP_201_CREATED)
-def cadastrar_produto(produto: ProdutoCadastro):
-    conexao = obter_conexao()
-    if not conexao:
-        raise HTTPException(status_code=500, detail="Não foi possível conectar ao banco de dados.")
-    
-    cursor = conexao.cursor()
-    try:
-        sql_produto = """
-            INSERT INTO produtos (nome, codigo, preco_custo, preco_venda, categoria, quantidade)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """
-        valores_produto = (
-            produto.nome, produto.codigo, produto.preco_custo, 
-            produto.preco_venda, produto.categoria, produto.quantidade
+# SEGURANÇA / CONTROLE DE ACESSO
+# Função de Dependência para proteger as rotas da API
+def verificar_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    # Simula validação do token
+    if token != "token-valido-admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido ou expirado.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        cursor.execute(sql_produto, valores_produto)
-        produto_id = cursor.lastrowid 
+    return {"usuario": "admin"}
 
-        sql_movimentacao = """
-            INSERT INTO movimentacoes_estoque (produto_id, tipo, quantidade)
-            VALUES (%s, %s, %s)
-        """
-        valores_movimentacao = (produto_id, 'compra', produto.quantidade)
-        cursor.execute(sql_movimentacao, valores_movimentacao)
-
-        conexao.commit()
-        return {"mensagem": "Produto e movimentação cadastrados com sucesso!", "id": produto_id}
-
-    except Exception as e:
-        conexao.rollback() 
-        if "Duplicate entry" in str(e):
-            raise HTTPException(status_code=400, detail="Já existe um produto cadastrado com este código.")
-        raise HTTPException(status_code=500, detail=f"Erro interno ao salvar: {str(e)}")
+# ENDPOINT DE AUTENTICAÇÃO
+@app.post("/api/auth/login", response_model=TokenResposta)
+def login(dados: UsuarioLogin):
+    # Mock de usuário e senha temporários
+    if dados.usuario == "admin" and dados.senha == "admin123":
+        return {"access_token": "token-valido-admin", "token_type": "bearer"}
     
-    finally:
-        cursor.close()
-        conexao.close()
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Usuário ou senha incorretos."
+    )
 
+# MOCKS DE DADOS
+MOCK_PRODUTOS = [
+    {"nome": "Teclado Mecânico", "quantidade": 15},
+    {"nome": "Mouse Gamer", "quantidade": 22}
+]
 
-# 2. LISTAR PRODUTOS (Tela de Estoque)
-@app.get("/api/produtos")
-def listar_produtos():
-    conexao = obter_conexao()
-    if not conexao:
-        raise HTTPException(status_code=500, detail="Erro de conexão com o banco.")
-    
-    # dictionary=True faz o banco retornar como dicionário/JSON
-    cursor = conexao.cursor(dictionary=True) 
-    try:
-        cursor.execute("SELECT nome, quantidade FROM produtos ORDER BY nome ASCE")
-        return cursor.fetchall()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conexao.close()
+MOCK_MOVIMENTACOES = [
+    {"produto_nome": "Teclado Mecânico", "quantidade_entrada": 20, "quantidade_saida": 5},
+    {"produto_nome": "Mouse Gamer", "quantidade_entrada": 30, "quantidade_saida": 8}
+]
 
+# ENDPOINTS PROTEGIDOS
 
-# 3. LISTAR MOVIMENTAÇÕES (Tela de Estoque)
-@app.get("/api/movimentacoes")
-def listar_movimentacoes():
-    conexao = obter_conexao()
-    if not conexao:
-        raise HTTPException(status_code=500, detail="Erro de conexão.")
-        
-    cursor = conexao.cursor(dictionary=True)
-    try:
-        # Faz um JOIN para buscar o nome do produto e agrupa/separa entradas e saídas
-        sql = """
-            SELECT 
-                p.nome AS produto_nome,
-                SUM(CASE WHEN m.tipo = 'compra' THEN m.quantidade ELSE 0 END) AS quantidade_entrada,
-                SUM(CASE WHEN m.tipo = 'venda' THEN m.quantidade ELSE 0 END) AS quantidade_saida
-            FROM movimentacoes_estoque m
-            JOIN produtos p ON m.produto_id = p.id
-            GROUP BY p.id, p.nome
-        """
-        cursor.execute(sql)
-        return cursor.fetchall()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conexao.close()
+@app.get("/api/resumo-diario", response_model=ResumoDiarioResposta)
+def obter_resumo_diario(usuario_logado: dict = Depends(verificar_token)):
+    return {"faturamento": 1250.45, "vendas": 14, "status_caixa": "Aberto"}
 
+@app.post("/api/produtos", status_code=status.HTTP_201_CREATED)
+def cadastrar_produto(produto: ProdutoCadastro, usuario_logado: dict = Depends(verificar_token)):
+    if produto.codigo == "999":
+        raise HTTPException(status_code=400, detail="Já existe um produto cadastrado com este código.")
+    MOCK_PRODUTOS.append({"nome": produto.nome, "quantidade": produto.quantidade})
+    return {"mensagem": "Produto e movimentação cadastrados com sucesso!"}
 
-# 4. RESUMO DIÁRIO (Dashboard)
-@app.get("/api/resumo-diario")
-def obter_resumo_diario():
-    conexao = obter_conexao()
-    if not conexao:
-        raise HTTPException(status_code=500, detail="Erro de conexão.")
-        
-    cursor = conexao.cursor(dictionary=True)
-    try:
-        cursor.execute("""
-            SELECT 
-                COALESCE(SUM(p.preco_venda * m.quantidade), 0.0) AS faturamento,
-                COUNT(DISTINCT m.id) AS vendas
-            FROM movimentacoes_estoque m
-            JOIN produtos p ON m.produto_id = p.id
-            WHERE m.tipo = 'venda' AND DATE(m.data_criacao) = CURDATE()
-        """)
-        resultado = cursor.fetchone()
-        
-        return {
-            "faturamento": float(resultado["faturamento"]),
-            "vendas": int(resultado["vendas"]),
-            "status_caixa": "Aberto"
-        }
-    except Exception as e:
-        # Se as tabelas de vendas não existirem ainda, devolve dados mocados para não quebrar a tela
-        return {"faturamento": 0.0, "vendas": 0, "status_caixa": "Aberto"}
-    finally:
-        cursor.close()
-        conexao.close()
+@app.get("/api/produtos", response_model=List[ProdutoResposta])
+def listar_produtos(usuario_logado: dict = Depends(verificar_token)):
+    return MOCK_PRODUTOS
 
-# 5. RESUMO FINANCEIRO (Para alimentar a Tela de Financeiro)
-@app.get("/api/financeiro-resumo")
-def obter_resumo_financeiro():
-    conexao = obter_conexao()
-    if not conexao:
-        raise HTTPException(status_code=500, detail="Erro de conexão com o banco de dados.")
-        
-    cursor = conexao.cursor(dictionary=True)
-    try:
-        # Exemplo de lógica para calcular os valores com base no seu banco
-        # Você pode adaptar as tabelas abaixo ('contas_receber', 'contas_pagar') conforme sua estrutura real
-        
-        # Simulando cálculo de contas a receber (ex: vendas a prazo ou pendentes)
-        cursor.execute("SELECT COALESCE(SUM(valor), 0.0) AS total FROM contas_receber WHERE status = 'pendente'")
-        a_receber = cursor.fetchone()["total"]
-        
-        # Simulando cálculo de contas a pagar (ex: despesas pendentes)
-        cursor.execute("SELECT COALESCE(SUM(valor), 0.0) AS total FROM contas_pagar WHERE status = 'pendente'")
-        a_pagar = cursor.fetchone()["total"]
-        
-        # Saldo consolidado simplificado (Entradas - Saídas)
-        saldo_consolidado = float(a_receber) - float(a_pagar)
-        
-        return {
-            "a_receber": float(a_receber),
-            "a_pagar": float(a_pagar),
-            "saldo_consolidado": saldo_consolidado
-        }
-    except Exception as e:
-        # Caso você ainda não tenha as tabelas financeiras criadas no banco,
-        # retornamos valores zerados para permitir que o frontend abra sem quebrar
-        return {
-            "a_receber": 0.0,
-            "a_pagar": 0.0,
-            "saldo_consolidado": 0.0
-        }
-    finally:
-        cursor.close()
-        conexao.close()
+@app.get("/api/movimentacoes", response_model=List[MovimentacaoResposta])
+def listar_movimentacoes(usuario_logado: dict = Depends(verificar_token)):
+    return MOCK_MOVIMENTACOES
 
+@app.get("/api/financeiro-resumo", response_model=FinanceiroResposta)
+def obter_resumo_financeiro(usuario_logado: dict = Depends(verificar_token)):
+    return {"a_receber": 4500.00, "a_pagar": 1850.30, "saldo_consolidado": 2649.70}
 
-# 7. GERAR ARQUIVO DE RELATÓRIO (Exemplo de exportação)
 @app.get("/api/relatorios/exportar")
-def exportar_relatorio(tipo_relatorio: str, formato: str):
-    # tipo_relatorio: 'faturamento' ou 'itens_vendidos'
-    # formato: 'pdf' ou 'xlsx'
-    
-    try:
-        # Aqui dentro viria a sua lógica usando bibliotecas como 'pandas' (para Excel) 
-        # ou 'reportlab'/'pdfkit' (para PDF) para criar o arquivo dinamicamente.
-        
-        # Caminho onde o arquivo gerado seria salvo temporariamente no servidor
-        caminho_arquivo = f"relatorios_temporarios/relatorio_{tipo_relatorio}.{formato}"
-        
-        # (Código fictício de geração do arquivo...)
-        # Se o arquivo existir, envia para o navegador do cliente iniciar o download:
-        if os.path.exists(caminho_arquivo):
-            media_type = "application/pdf" if formato == "pdf" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            return FileResponse(
-                path=caminho_arquivo, 
-                filename=f"relatorio_{tipo_relatorio}_{date.today()}.{formato}",
-                media_type=media_type
-            )
-        
-        # Enquanto você não implementa a geração real do PDF/Excel, devolvemos um erro controlado:
-        raise HTTPException(status_code=511, detail="Módulo de geração de arquivos em desenvolvimento.")
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao gerar arquivo: {str(e)}")
+def exportar_relatorio(tipo_relatorio: str, formato: str, data_inicio: str, data_fim: str, usuario_logado: dict = Depends(verificar_token)):
+    return {"status": "pronto", "tipo": tipo_relatorio, "formato": formato}
+
+
+"""
+# Endpoint simulado para o PDV do Gustavo registrar uma venda
+@app.post("/api/vendas", status_code=status.HTTP_201_CREATED)
+def registrar_venda(venda: dict, usuario_logado: dict = Depends(verificar_token)):
+
+    # Recebe os itens vendidos no Frente de Caixa, abate as quantidades do estoque e atualiza o histórico de movimentações (saídas).
+
+    # Exemplo de lógica que rodará aqui:
+    # 1. Deduzir do MOCK_PRODUTOS a quantidade vendida
+    # 2. Inserir em MOCK_MOVIMENTACOES com o tipo "venda"
+    return {"status": "sucesso", "mensagem": "Venda processada e estoque atualizado!"}
+"""

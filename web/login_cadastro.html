@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Login e Cadastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="padding: 10px; margin-bottom: 15px; border-radius: 4px; background-color: #f8d7da; color: #721c24;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div id="loginForm" class="form-container">
+            <h2>Login</h2>
+            <form id="login" action="{{ url_for('login') }}" method="POST">
+                <div class="form-group">
+                    <label for="loginUser">Usuário</label>
+                    <input type="text" id="loginUser" name="usuario" required placeholder="Digite seu usuário (Ex: admin)">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Senha</label>
+                    <input type="password" id="loginPassword" name="senha" required placeholder="Digite sua senha">
+                </div>
+                <button type="submit" class="btn btn-primary">Entrar</button>
+                <p class="toggle-text">
+                    Não tem uma conta? <a href="#" onclick="showRegister()">Cadastre-se</a>
+                </p>
+            </form>
+        </div>
+
+        <div id="registerForm" class="form-container" style="display: none;">
+            <h2>Cadastro</h2>
+            <form id="register">
+                <div class="form-group">
+                    <label for="registerName">Nome Completo</label>
+                    <input type="text" id="registerName" required placeholder="Digite seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" required placeholder="Digite seu email">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Senha</label>
+                    <input type="password" id="registerPassword" required placeholder="Digite sua senha (mínimo 6 caracteres)">
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Confirmar Senha</label>
+                    <input type="password" id="registerConfirmPassword" required placeholder="Confirme sua senha">
+                </div>
+                <button type="button" onclick="alert('Funcionalidade de cadastro será conectada ao banco de dados na próxima etapa!')" class="btn btn-primary">Cadastrar</button>
+                <p class="toggle-text">
+                    Já tem uma conta? <a href="#" onclick="showLogin()">Faça login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

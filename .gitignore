@@ -1,37 +1,10 @@
-# --- Configurações de Ambiente e Segurança (CRÍTICO) ---
+# Ignorar arquivos de ambiente com credenciais reais
 .env
-.env.local
-.env.*.local
+api/.env
+web/.env
 
-# --- Ambientes Virtuais Python ---
+# Ignorar pastas de ambiente virtual
 venv/
 .venv/
-env/
-ENV/
-pyvenv.cfg
-.python-version
-
-# --- Arquivos Temporários da sua API ---
-# Bloqueia a pasta de relatórios PDF/Excel temporários para não poluir o GitHub
-relatorios_temporarios/
-*.pdf
-*.xlsx
-
-# --- Caches do Python ---
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.pytest_cache/
-.coverage
-htmlcov/
-
-# --- Configurações de IDEs/Editores ---
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# --- Arquivos de Sistema ---
-.DS_Store
-Thumbs.db

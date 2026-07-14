@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos — Painel do Administrador - PDV Enxuto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link class="dinamico" rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="pagina-interna pagina-admin">
+    <span class="selo selo-admin">Perfil: Administrador</span>
+    <h1>Produtos — João Silva</h1>
+
+    <nav class="nav-admin">
+        <a class="nav-admin-link" href="dashboard.html">Dashboard</a>
+        <a class="nav-admin-link nav-admin-link-ativo" href="produtos.html">Produtos</a>
+    </nav>
+
+    <div class="mensagens">
+        <div class="mensagem-sucesso">Produto atualizado com sucesso!</div>
+    </div>
+
+    <section class="secao-admin">
+        <h2>Cadastrar novo produto</h2>
+        <form method="POST" action="#" class="form-produto">
+            <div class="linha-produto">
+                <div class="campo">
+                    <label for="codigo">Código</label>
+                    <input type="text" id="codigo" name="codigo" required placeholder="ex: 7891000100103">
+                </div>
+                <div class="campo">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" name="nome" required placeholder="ex: Refrigerante Lata 350ml">
+                </div>
+                <div class="campo campo-estreito">
+                    <label for="preco">Preço (R$)</label>
+                    <input type="text" inputmode="decimal" id="preco" name="preco" required placeholder="0.00">
+                </div>
+                <div class="campo campo-estreito">
+                    <label for="estoque">Estoque inicial</label>
+                    <input type="number" min="0" id="estoque" name="estoque" required placeholder="0">
+                </div>
+            </div>
+            <button type="submit" class="botao-entrar botao-cadastrar-produto">Cadastrar produto</button>
+        </form>
+    </section>
+
+    <section class="secao-admin">
+        <h2>Estoque cadastrado</h2>
+        
+        <form id="form-produto-1" method="POST" action="#"></form>
+        <form id="form-produto-2" method="POST" action="#"></form>
+        <form id="form-produto-3" method="POST" action="#"></form>
+
+        <table class="tabela-admin">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Preço (R$)</th>
+                    <th>Estoque</th>
+                    <th>Ativo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="codigo-mono">789123456789</span></td>
+                    <td><input form="form-produto-1" type="text" name="nome" value="Refrigerante Lata 350ml" required></td>
+                    <td><input form="form-produto-1" type="text" inputmode="decimal" name="preco" value="6.00" required></td>
+                    <td><input form="form-produto-1" type="number" min="0" name="estoque" value="42" required></td>
+                    <td class="celula-ativo">
+                        <label class="chave chave-pequena">
+                            <input form="form-produto-1" type="checkbox" name="ativo" checked>
+                            <span class="chave-trilho"></span>
+                        </label>
+                    </td>
+                    <td><button form="form-produto-1" type="submit" class="botao-salvar-produto">Salvar</button></td>
+                </tr>
+
+                <tr class="linha-alerta">
+                    <td><span class="codigo-mono">789987654321</span></td>
+                    <td><input form="form-produto-2" type="text" name="nome" value="Sanduíche Natural de Frango" required></td>
+                    <td><input form="form-produto-2" type="text" inputmode="decimal" name="preco" value="13.50" required></td>
+                    <td><input form="form-produto-2" type="number" min="0" name="estoque" value="3" required></td>
+                    <td class="celula-ativo">
+                        <label class="chave chave-pequena">
+                            <input form="form-produto-2" type="checkbox" name="ativo" checked>
+                            <span class="chave-trilho"></span>
+                        </label>
+                    </td>
+                    <td><button form="form-produto-2" type="submit" class="botao-salvar-produto">Salvar</button></td>
+                </tr>
+
+                <tr>
+                    <td><span class="codigo-mono">789456123789</span></td>
+                    <td><input form="form-produto-3" type="text" name="nome" value="Suco de Laranja Integral 1L" required></td>
+                    <td><input form="form-produto-3" type="text" inputmode="decimal" name="preco" value="16.00" required></td>
+                    <td><input form="form-produto-3" type="number" min="0" name="estoque" value="15" required></td>
+                    <td class="celula-ativo">
+                        <label class="chave chave-pequena">
+                            <input form="form-produto-3" type="checkbox" name="ativo">
+                            <span class="chave-trilho"></span>
+                        </label>
+                    </td>
+                    <td><button form="form-produto-3" type="submit" class="botao-salvar-produto">Salvar</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <a class="sair" href="login.html">Encerrar sessão</a>
+</div>
+
+</body>
+</html>

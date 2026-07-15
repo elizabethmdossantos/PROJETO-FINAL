@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDV Enxuto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="tela-login">
+
+    <section class="painel-marca">
+        <div>
+            <span class="marca-eyebrow">Sistema de Gestão Comercial</span>
+            <h1 class="marca-titulo">PDV<br>Enxuto</h1>
+            <p class="marca-descricao">
+                Um caixa por vez, um estoque só. Cada venda registrada aqui atualiza
+                o estoque e aparece em tempo real para quem administra a loja.
+            </p>
+        </div>
+
+        <div class="recibo">
+            <div class="recibo-linha"><span>terminal</span><span id="relogio-recibo"></span></div>
+            <div class="recibo-linha"><span>status</span><span>aguardando login</span></div>
+            <hr>
+            <div class="recibo-linha"><span>operador</span><span>acesso ao caixa</span></div>
+            <div class="recibo-linha"><span>administrador</span><span>visão completa</span></div>
+        </div>
+    </section>
+
+    <section class="painel-form">
+        <div class="cartao-login">
+            <h2>Acessar o sistema</h2>
+            <p class="subtitulo">Informe seu login e senha para continuar.</p>
+
+            <div class="mensagens">
+                <div class="mensagem-erro"> texto </div>
+            </div>
+
+            <form id="form-login" method="POST" action="#" autocomplete="off">
+
+                <div class="alternador">
+                    <div class="alternador-rotulo">
+                        <strong>Entrar como</strong>
+                        <span id="texto-modo">Operador de caixa</span>
+                    </div>
+                    <label class="chave">
+                        <input type="checkbox" id="e_admin" name="e_admin">
+                        <span class="chave-trilho"></span>
+                    </label>
+                </div>
+
+                <div class="campo">
+                    <label for="login">Login</label>
+                    <input type="text" id="login" name="login" required autofocus placeholder="ex: caixa1">
+                </div>
+
+                <div class="campo">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required placeholder="••••••••">
+                </div>
+
+                <div class="campo campo-admin" id="campo-senha-admin">
+                    <label for="senha_admin">Senha administrativa</label>
+                    <input type="password" id="senha_admin" name="senha_admin" placeholder="2º fator — apenas para administradores">
+                </div>
+
+                <button type="submit" class="botao-entrar">Entrar</button>
+            </form>
+
+            <div class="status-linha">
+                <span class="status-ponto"></span>
+                Conexão com a API verificada a cada tentativa de login
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script src="js/login.js"></script>
+<script>
+document.getElementById('e_admin').addEventListener('change', function () {
+    document.getElementById('texto-modo').textContent =
+    this.checked ? 'Administrador' : 'Operador de caixa';
+});
+</script>
+</body>
+</html>

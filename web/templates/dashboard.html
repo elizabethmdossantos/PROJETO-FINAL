@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador - PDV Enxuto</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="pagina-interna pagina-admin">
+    <span class="selo selo-admin">Perfil: Administrador</span>
+    <h1>Visão geral — João Silva</h1>
+
+    <nav class="nav-admin">
+        <a class="nav-admin-link nav-admin-link-ativo" href="dashboard.html">Dashboard</a>
+        <a class="nav-admin-link" href="produtos.html">Produtos</a>
+    </nav>
+
+    <div class="mensagens">
+        <div class="mensagem-sucesso">Ação realizada com sucesso! (Exemplo de feedback)</div>
+    </div>
+
+    <div class="cartoes-resumo">
+        <div class="cartao-metrica">
+            <span class="metrica-rotulo">Total vendido (concluídas)</span>
+            <span class="metrica-valor">R$ 1.540,50</span>
+        </div>
+        <div class="cartao-metrica">
+            <span class="metrica-rotulo">Vendas concluídas</span>
+            <span class="metrica-valor">24</span>
+        </div>
+        <div class="cartao-metrica">
+            <span class="metrica-rotulo">Produtos com estoque baixo</span>
+            <span class="metrica-valor metrica-alerta">1</span>
+        </div>
+        <div class="cartao-metrica">
+            <span class="metrica-rotulo">Turnos de caixa registrados</span>
+            <span class="metrica-valor">2</span>
+        </div>
+    </div>
+
+    <section class="secao-admin">
+        <h2>Vendas — o que foi vendido, por quem e por quanto</h2>
+
+        <form method="GET" action="#" class="form-filtro">
+            <div class="campo campo-filtro">
+                <label for="data_inicio">De</label>
+                <input type="date" id="data_inicio" name="data_inicio" value="2026-07-01">
+            </div>
+            <div class="campo campo-filtro">
+                <label for="data_fim">Até</label>
+                <input type="date" id="data_fim" name="data_fim" value="2026-07-14">
+            </div>
+            <button type="submit" class="botao-entrar botao-filtro">Filtrar</button>
+            <a class="link-limpar-filtro" href="dashboard.html">Limpar filtro</a>
+        </form>
+
+        <table class="tabela-admin">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Data/hora</th>
+                    <th>Operador</th>
+                    <th>Itens</th>
+                    <th>Pagamento</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1002</td>
+                    <td>2026-07-14 14:15</td>
+                    <td>caixa1</td>
+                    <td>2x Refrigerante Lata, 1x Sanduíche Natural</td>
+                    <td><span class="etiqueta-pagamento etiqueta-pix">pix</span></td>
+                    <td><span class="etiqueta-status etiqueta-venda-concluida">concluida</span></td>
+                    <td>R$ 25,50</td>
+                    <td>
+                        <form method="POST" action="#" class="form-cancelar" onsubmit="return confirm('Cancelar a venda #1002? O estoque será devolvido.');">
+                            <input type="hidden" name="data_inicio" value="2026-07-01">
+                            <input type="hidden" name="data_fim" value="2026-07-14">
+                            <button type="submit" class="botao-remover">Cancelar</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr class="linha-cancelada">
+                    <td>1001</td>
+                    <td>2026-07-14 11:30</td>
+                    <td>caixa1</td>
+                    <td>1x Chocolate Amargo 70%</td>
+                    <td><span class="etiqueta-pagamento etiqueta-dinheiro">dinheiro</span></td>
+                    <td><span class="etiqueta-status etiqueta-venda-cancelada">cancelada</span></td>
+                    <td>R$ 9,00</td>
+                    <td></td> </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="secao-admin">
+        <h2>Estoque</h2>
+        <table class="tabela-admin">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Produto</th>
+                    <th>Preço</th>
+                    <th>Estoque</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="codigo-mono">789123456789</span></td>
+                    <td>Refrigerante Lata 350ml</td>
+                    <td>R$ 6,00</td>
+                    <td>42</td>
+                </tr>
+                <tr class="linha-alerta">
+                    <td><span class="codigo-mono">789987654321</span></td>
+                    <td>Sanduíche Natural de Frango</td>
+                    <td>R$ 13,50</td>
+                    <td>3</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="secao-admin">
+        <h2>Turnos de caixa</h2>
+        <table class="tabela-admin">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Status</th>
+                    <th>Abertura</th>
+                    <th>Fechamento</th>
+                    <th>Fundo de troco</th>
+                    <th>Contado no fechamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>5</td>
+                    <td><span class="etiqueta-status etiqueta-aberto">aberto</span></td>
+                    <td>2026-07-14 08:00</td>
+                    <td>—</td>
+                    <td>R$ 100,00</td>
+                    <td>—</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td><span class="etiqueta-status etiqueta-fechado">fechado</span></td>
+                    <td>2026-07-13 08:00</td>
+                    <td>2026-07-13 18:30</td>
+                    <td>R$ 100,00</td>
+                    <td>R$ 480,50</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <a class="sair" href="login.html">Encerrar sessão</a>
+</div>
+
+</body>
+</html>

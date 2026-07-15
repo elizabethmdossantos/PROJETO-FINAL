@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block titulo %}Painel do Administrador{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-interna pagina-admin">
+  <span class="selo selo-admin">Perfil: Administrador</span>
+  <h1>Visão geral — {{ usuario }}</h1>
+
+  <nav class="nav-admin">
+    <a class="nav-admin-link nav-admin-link-ativo" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a class="nav-admin-link" href="{{ url_for('produtos.listar') }}">Produtos</a>
+  </nav>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="cartoes-resumo">
+    <div class="cartao-metrica">
+      <span class="metrica-rotulo">Total vendido (concluídas)</span>
+      <span class="metrica-valor">R$ {{ "%.2f"|format(total_vendido) }}</span>
+    </div>
+    <div class="cartao-metrica">
+      <span class="metrica-rotulo">Vendas concluídas</span>
+      <span class="metrica-valor">{{ quantidade_vendas }}</span>
+    </div>
+    <div class="cartao-metrica">
+      <span class="metrica-rotulo">Produtos com estoque baixo</span>
+      <span class="metrica-valor metrica-alerta">{{ produtos_estoque_baixo|length }}</span>
+    </div>
+    <div class="cartao-metrica">
+      <span class="metrica-rotulo">Turnos de caixa registrados</span>
+      <span class="metrica-valor">{{ caixas|length }}</span>
+    </div>
+  </div>
+
+  <section class="secao-admin">
+    <h2>Vendas — o que foi vendido, por quem e por quanto</h2>
+
+    <form method="GET" action="{{ url_for('admin.dashboard') }}" class="form-filtro">
+      <div class="campo campo-filtro">
+        <label for="data_inicio">De</label>
+        <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+      </div>
+      <div class="campo campo-filtro">
+        <label for="data_fim">Até</label>
+        <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}">
+      </div>
+      <button type="submit" class="botao-entrar botao-filtro">Filtrar</button>
+      {% if data_inicio or data_fim %}
+        <a class="link-limpar-filtro" href="{{ url_for('admin.dashboard') }}">Limpar filtro</a>
+      {% endif %}
+    </form>
+
+    {% if vendas %}
+    <table class="tabela-admin">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data/hora</th>
+          <th>Operador</th>
+          <th>Itens</th>
+          <th>Pagamento</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for venda in vendas %}
+        <tr class="{{ 'linha-cancelada' if venda.status == 'cancelada' else '' }}">
+          <td>{{ venda.id }}</td>
+          <td>{{ venda.criado_em[:16].replace("T", " ") }}</td>
+          <td>{{ venda.nome_operador }}</td>
+          <td>
+            {% for item in venda.itens %}
+              {{ item.quantidade }}x {{ item.nome_produto }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+          <td><span class="etiqueta-pagamento etiqueta-{{ venda.forma_pagamento }}">{{ venda.forma_pagamento }}</span></td>
+          <td><span class="etiqueta-status etiqueta-venda-{{ venda.status }}">{{ venda.status }}</span></td>
+          <td>R$ {{ "%.2f"|format(venda.valor_total|float) }}</td>
+          <td>
+            {% if venda.status == "concluida" %}
+            <form method="POST" action="{{ url_for('admin.cancelar_venda', venda_id=venda.id) }}" class="form-cancelar" onsubmit="return confirm('Cancelar a venda #{{ venda.id }}? O estoque será devolvido.');">
+              <input type="hidden" name="data_inicio" value="{{ data_inicio }}">
+              <input type="hidden" name="data_fim" value="{{ data_fim }}">
+              <button type="submit" class="botao-remover">Cancelar</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="texto-vazio">Nenhuma venda encontrada para o período selecionado.</p>
+    {% endif %}
+  </section>
+
+  <section class="secao-admin">
+    <h2>Estoque</h2>
+    {% if produtos %}
+    <table class="tabela-admin">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Produto</th>
+          <th>Preço</th>
+          <th>Estoque</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+        <tr class="{{ 'linha-alerta' if produto.estoque <= 5 else '' }}">
+          <td><span class="codigo-mono">{{ produto.codigo }}</span></td>
+          <td>{{ produto.nome }}</td>
+          <td>R$ {{ "%.2f"|format(produto.preco|float) }}</td>
+          <td>{{ produto.estoque }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="texto-vazio">Nenhum produto cadastrado ainda. Cadastre em <a href="{{ url_for('produtos.listar') }}">Produtos</a> ou rode <code>python seed_produtos.py</code> na pasta <code>api/</code>.</p>
+    {% endif %}
+  </section>
+
+  <section class="secao-admin">
+    <h2>Turnos de caixa</h2>
+    {% if caixas %}
+    <table class="tabela-admin">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Status</th>
+          <th>Abertura</th>
+          <th>Fechamento</th>
+          <th>Fundo de troco</th>
+          <th>Contado no fechamento</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in caixas %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td><span class="etiqueta-status etiqueta-{{ c.status }}">{{ c.status }}</span></td>
+          <td>{{ c.aberto_em[:16].replace("T", " ") }}</td>
+          <td>{{ c.fechado_em[:16].replace("T", " ") if c.fechado_em else "—" }}</td>
+          <td>R$ {{ "%.2f"|format(c.valor_abertura|float) }}</td>
+          <td>{{ "R$ %.2f"|format(c.valor_fechamento|float) if c.valor_fechamento is not none else "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="texto-vazio">Nenhum turno de caixa registrado ainda.</p>
+    {% endif %}
+  </section>
+
+  <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+</div>
+{% endblock %}

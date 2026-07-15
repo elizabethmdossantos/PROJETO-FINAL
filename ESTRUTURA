@@ -1,0 +1,60 @@
+projeto-integrador-pdv/
+│
+├── api/                      # Camada Back-end (FastAPI) + Banco de Dados
+│   ├── app/
+│   │   ├── core/             # Configurações gerais, segurança (JWT) e DB
+│   │   │   ├── config.py
+│   │   │   └── database.py   # Conexão com o MySQL
+│   │   │
+│   │   ├── models/           # Modelos do Banco de Dados (SQLAlchemy)
+│   │   │   ├── usuario.py
+│   │   │   ├── produto.py
+│   │   │   ├── venda.py      # <- foco (Vendas, ItensVenda)
+│   │   │   └── caixa.py      # <- foco (Abertura, Fechamento, Fluxo)
+│   │   │
+│   │   ├── schemas/          # Validação de dados (Pydantic)
+│   │   │   ├── produto.py
+│   │   │   ├── venda.py
+│   │   │   └── caixa.py
+│   │   │
+│   │   ├── routers/          # Endpoints da API (Rotas)
+│   │   │   ├── auth.py       # Login / Token JWT
+│   │   │   ├── produtos.py
+│   │   │   ├── vendas.py     # <- endpoints (POST /vendas)
+│   │   │   └── caixa.py      # <- endpoints (POST /caixa/abrir)
+│   │   │
+│   │   └── main.py           # Arquivo inicial do FastAPI
+│   │
+│   └── requirements.txt
+│
+├── web/                      # Camada Front-end + Consumo da API (Flask)
+│   ├── app/
+│   │   ├── static/           # Arquivos estáticos (CSS, JS, Imagens)
+│   │   │   ├── css/
+│   │   │   └── js/
+│   │   │       └── pdv.js    # <- script para buscar produtos via teclado
+│   │   │
+│   │   ├── templates/        # Telas em HTML (Jinja2)
+│   │   │   ├── base.html     # Layout padrão (Navbar/Sidebar)
+│   │   │   ├── login.html
+│   │   │   ├── pdv/          # <- telas
+│   │   │   │   ├── terminal.html   # Tela de venda rápida
+│   │   │   │   └── caixa.html      # Abertura/Fechamento
+│   │   │   └── admin/        # Telas do Backoffice (colegas)
+│   │   │
+│   │   ├── routes/           # Rotas do Flask que renderizam os HTMLs
+│   │   │   ├── auth.py
+│   │   │   ├── pdv.py        # <- rotas do Flask
+│   │   │   └── admin.py
+│   │   │
+│   │   └── main.py           # Arquivo inicial do Flask
+│   │
+│   └── requirements.txt
+│
+├── tests/                    # Testes Automatizados (Pytest)
+│   ├── conftest.py           # Fixtures globais (banco de testes)
+│   ├── test_api_vendas.py    # <- testes de venda e estoque
+│   └── test_api_caixa.py     # Respeitando os 70% de cobertura exigidos
+│
+├── .gitignore
+├── README.md

@@ -399,7 +399,25 @@
   gap: 14px;
   align-items: end;
 }
+.form-produto {
+  max-width: 640px;
+}
 
+.form-produto .campo {
+  margin-bottom: 14px;
+}
+
+.form-produto input[type="text"],
+.form-produto input[type="password"],
+.form-produto select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+}
 @media (max-width: 860px) {
   .form-produto .linha-produto {
     grid-template-columns: 1fr;

@@ -66,6 +66,105 @@ def dashboard():
     )
 
 
+@admin_bp.route("/usuarios/novo", methods=["GET", "POST"])
+def novo_usuario():
+    if not _sessao_e_admin():
+        return redirect(url_for("auth.login"))
+
+    usuarios = []
+    try:
+        resposta_usuarios = requests.get(f"{API_URL}/usuarios", headers=_headers(), timeout=5)
+        if resposta_usuarios.status_code == 200:
+            usuarios = resposta_usuarios.json()
+    except requests.exceptions.RequestException:
+        flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+
+    if request.method == "POST":
+        payload = {
+            "nome": request.form.get("nome", "").strip(),
+            "login": request.form.get("login", "").strip(),
+            "senha": request.form.get("senha", ""),
+            "perfil": request.form.get("perfil", "caixa"),
+            "ativo": request.form.get("ativo") == "on",
+        }
+
+        try:
+            resposta = requests.post(
+                f"{API_URL}/usuarios",
+                json=payload,
+                headers=_headers(),
+                timeout=5,
+            )
+        except requests.exceptions.RequestException:
+            flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+            return render_template("admin/usuarios.html", usuario=session.get("usuario"), usuarios=usuarios)
+
+        if resposta.status_code != 201:
+            mensagem = resposta.json().get("detail", "Não foi possível criar o usuário.")
+            flash(mensagem, "erro")
+        else:
+            flash("Usuário cadastrado com sucesso.", "sucesso")
+            return redirect(url_for("admin.novo_usuario"))
+
+    return render_template("admin/usuarios.html", usuario=session.get("usuario"), usuarios=usuarios)
+
+
+@admin_bp.route("/usuarios/<int:usuario_id>/editar", methods=["POST"])
+def editar_usuario(usuario_id):
+    if not _sessao_e_admin():
+        return redirect(url_for("auth.login"))
+
+    payload = {
+        "nome": request.form.get("nome", "").strip() or None,
+        "login": request.form.get("login", "").strip() or None,
+        "perfil": request.form.get("perfil") or None,
+        "ativo": request.form.get("ativo") == "on",
+    }
+
+    senha = request.form.get("senha", "")
+    if senha:
+        payload["senha"] = senha
+
+    try:
+        resposta = requests.put(
+            f"{API_URL}/usuarios/{usuario_id}",
+            json=payload,
+            headers=_headers(),
+            timeout=5,
+        )
+    except requests.exceptions.RequestException:
+        flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+        return redirect(url_for("admin.novo_usuario"))
+
+    if resposta.status_code != 200:
+        mensagem = resposta.json().get("detail", "Não foi possível atualizar o usuário.")
+        flash(mensagem, "erro")
+    else:
+        flash("Usuário atualizado com sucesso.", "sucesso")
+
+    return redirect(url_for("admin.novo_usuario"))
+
+
+@admin_bp.route("/usuarios/<int:usuario_id>/excluir", methods=["POST"])
+def excluir_usuario(usuario_id):
+    if not _sessao_e_admin():
+        return redirect(url_for("auth.login"))
+
+    try:
+        resposta = requests.delete(f"{API_URL}/usuarios/{usuario_id}", headers=_headers(), timeout=5)
+    except requests.exceptions.RequestException:
+        flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+        return redirect(url_for("admin.novo_usuario"))
+
+    if resposta.status_code != 204:
+        mensagem = resposta.json().get("detail", "Não foi possível excluir o usuário.")
+        flash(mensagem, "erro")
+    else:
+        flash("Usuário excluído com sucesso.", "sucesso")
+
+    return redirect(url_for("admin.novo_usuario"))
+
+
 @admin_bp.route("/vendas/<int:venda_id>/cancelar", methods=["POST"])
 def cancelar_venda(venda_id):
     if not _sessao_e_admin():

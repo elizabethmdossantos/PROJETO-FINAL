@@ -1,14 +1,18 @@
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+API_DIR = Path(__file__).resolve().parents[2]
+load_dotenv(dotenv_path=API_DIR / ".env", override=False)
+load_dotenv(dotenv_path=API_DIR / ".env.example", override=False)
 
 
 class Settings:
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
     DB_PORT: str = os.getenv("DB_PORT", "3306")
     DB_USER: str = os.getenv("DB_USER", "root")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "")
+    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "123456")
     DB_NAME: str = os.getenv("DB_NAME", "pdv_db")
 
     @property

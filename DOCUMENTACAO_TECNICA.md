@@ -3,12 +3,6 @@
 Projeto Integrador — Módulo III — Informática para Internet
 Tema: ERP enxuto / gestão comercial (PDV com login por perfil, vendas e caixa)
 
-Este documento explica, arquivo por arquivo, **o que cada parte do código faz,
-por que ela existe e como as peças se encaixam**. Ele complementa o `README.md`
-(que foca em "como rodar") e serve como material de apoio para a apresentação:
-cada integrante pode usar a seção correspondente à sua parte para explicar o
-próprio trabalho.
-
 ---
 
 ## Sumário
@@ -34,7 +28,7 @@ projeto-integrador-pdv/
 │   │   ├── core/              → configuração, conexão com banco, segurança, dependências
 │   │   ├── models/             → tabelas do banco (SQLAlchemy ORM)
 │   │   ├── schemas/            → formato de entrada/saída da API (Pydantic)
-│   │   ├── routers/            → endpoints HTTP (auth, produtos, caixa, vendas)
+│   │   ├── routers/            → endpoints HTTP (auth, produtos, caixa, vendas, usuários)
 │   │   └── main.py             → ponto de entrada da API
 │   ├── seed_usuarios.py       → cria usuários de teste
 │   ├── seed_produtos.py       → cria produtos de teste
@@ -55,7 +49,7 @@ projeto-integrador-pdv/
 O navegador **nunca fala diretamente com a API**. O fluxo é sempre:
 
 ```
-Navegador → Flask (web/) → API (api/) → MySQL
+Navegador → Flask (web/ em http://localhost:5000) → API (api/ em http://localhost:8000) → MySQL
 ```
 
 1. O usuário clica em algo na tela (ex: "Entrar").
@@ -96,25 +90,25 @@ seed). Não é necessário rodar nenhum script SQL manual de criação de tabela
 | criado_em     | DateTime                  | preenchido pelo banco (`server_default=func.now()`) |
 
 ### `produtos`
-| Coluna     | Tipo             | Observação |
+| Coluna     | Tipo              | Observação |
 |------------|-------------------|------------|
 | id         | Integer (PK)      | id interno, nunca exposto ao operador |
-| codigo     | String(30), único  | o que o operador digita/bipa no terminal |
-| nome       | String(120)        | |
-| preco      | Numeric(10,2)       | preço "de tabela" atual |
-| estoque    | Integer             | quantidade disponível |
-| ativo      | Boolean             | produto descontinuado não aparece mais no terminal |
+| codigo     | String(30), único | o que o operador digita/bipa no terminal |
+| nome       | String(120)       | |
+| preco      | Numeric(10,2)     | preço "de tabela" atual |
+| estoque    | Integer           | quantidade disponível |
+| ativo      | Boolean           | produto descontinuado não aparece mais no terminal |
 
 ### `caixas` (turno de trabalho do operador)
 | Coluna            | Tipo                        | Observação |
-|-------------------|------------------------------|------------|
-| id                | Integer (PK)                 | |
-| usuario_id        | FK → usuarios.id              | quem abriu o turno |
-| status            | Enum(`aberto`, `fechado`)      | |
-| valor_abertura    | Numeric(10,2)                  | fundo de troco |
-| valor_fechamento  | Numeric(10,2), opcional         | valor contado fisicamente ao fechar |
-| aberto_em / fechado_em | DateTime                   | |
-| observacoes       | String(255), opcional           | |
+|-------------------|-----------------------------|------------|
+| id                | Integer (PK)                | |
+| usuario_id        | FK → usuarios.id            | quem abriu o turno |
+| status            | Enum(`aberto`, `fechado`)   | |
+| valor_abertura    | Numeric(10,2)               | fundo de troco |
+| valor_fechamento  | Numeric(10,2), opcional     | valor contado fisicamente ao fechar |
+| aberto_em / fechado_em | DateTime               | |
+| observacoes       | String(255), opcional       | |
 
 ### `vendas`
 | Coluna           | Tipo                              | Observação |
@@ -137,12 +131,10 @@ seed). Não é necessário rodar nenhum script SQL manual de criação de tabela
 | preco_unitario  | Numeric(10,2)            | **snapshot** do preço do produto na hora da venda |
 | subtotal        | Numeric(10,2)            | quantidade × preco_unitario |
 
-**Por que existe `preco_unitario` em `itens_venda` em vez de só consultar
-`produtos.preco`?** Porque o preço de um produto muda com o tempo (reajustes,
-promoções). Se o histórico de vendas lesse o preço atual do produto, uma venda
-de mês passado mudaria de valor sempre que o preço fosse atualizado hoje. Guardar
-o preço praticado no momento da venda ("snapshot") é o que garante que o
-histórico financeiro seja imutável — um requisito básico de integridade para
+- **Por que existe `preco_unitario` em `itens_venda` em vez de só consultar `produtos.preco` ?** 
+- Porque o preço de um produto muda com o tempo (reajustes, promoções). 
+- Se o histórico de vendas lesse o preço atual do produto, uma venda de mês passado mudaria de valor sempre que o preço fosse atualizado hoje.
+- Guardar o preço praticado no momento da venda ("snapshot") é o que garante que o histórico financeiro seja imutável — um requisito básico de integridade para
 qualquer sistema de vendas.
 
 ### Relacionamentos (resumo do DER)
@@ -354,10 +346,7 @@ Fluxo:
   retroativamente aquele resumo histórico — mas a venda deixa de contar em
   qualquer relatório futuro.
 
-**`main.py`** — monta o app FastAPI, cria as tabelas (`Base.metadata.create_all`),
-configura CORS (liberado para `http://localhost:5000`, o endereço do Flask em
-desenvolvimento) e inclui os quatro routers. Uma rota `GET /` simples devolve
-um status para checagem rápida de saúde da API.
+**`main.py`** — monta o app FastAPI, cria as tabelas (`Base.metadata.create_all`) e inclui os quatro routers. A API também configura CORS, mas no fluxo normal do projeto o navegador não chama a API diretamente: o Flask faz as requisições servidor-servidor para `http://localhost:8000` e devolve a resposta ao navegador. Assim, a política de CORS é mais relevante para testes diretos à API ou futuros clientes que consumam a API sem proxy.
 
 ---
 
@@ -397,7 +386,7 @@ blueprints (`auth`, `admin`, `pdv`, `produtos`).
   header `Authorization` (lido da sessão) e repassa para a API, devolvendo a
   resposta como JSON puro para o navegador.
 
-**`routes/admin.py`** — dashboard e gestão de vendas.
+**`routes/admin.py`** — dashboard, gestão de vendas e gestão de usuários.
 - `GET /admin/dashboard`: lê os parâmetros de query `data_inicio`/`data_fim`
   (se o formulário de filtro foi usado) e repassa como parâmetros para
   `GET /vendas` na API; busca também `GET /produtos` e `GET /caixa`.
@@ -408,6 +397,7 @@ blueprints (`auth`, `admin`, `pdv`, `produtos`).
   `POST /vendas/{id}/cancelar` na API e redireciona de volta ao dashboard,
   preservando o filtro de período que estava ativo (por isso o formulário
   de cancelamento carrega `data_inicio`/`data_fim` como campos escondidos).
+- `GET /admin/usuarios`, `POST /admin/usuarios/novo`, `POST /admin/usuarios/<id>/editar` e `POST /admin/usuarios/<id>/excluir`: formam a interface de gestão de contas no painel administrativo. O Flask consome a API `/usuarios` para listar, criar, editar e excluir usuários sem acessar o banco diretamente.
 
 **`routes/produtos.py`** — **blueprint novo**, tela de gestão de produtos.
 - `GET /admin/produtos`: lista todos os produtos (inclusive inativos, via
@@ -458,6 +448,14 @@ substituta) à proteção real que já existe na API via `exigir_admin`.
   seus campos, apontando para um `<form id="form-produto-{id}">` vazio
   declarado antes da tabela — um recurso padrão do HTML5 que permite que um
   campo pertença a um formulário sem estar aninhado dentro dele.
+- **`admin/usuarios.html`** — interface administrativa de cadastro e manutenção de contas.
+  O formulário superior cria novos usuários com nome, login, senha, perfil
+  (`caixa` ou `admin`) e status ativo/inativo. A seção abaixo lista os
+  usuários existentes em uma tabela editável: cada linha é um mini-formulário
+  que permite alterar nome, login, perfil e status, e tem botões para salvar
+  ou excluir. A exclusão está bloqueada para o usuário `admin` de sistema, e
+  a ação de remover pede confirmação do administrador antes de enviar a
+  requisição para a API.
 
 ### 5.2 CSS
 
@@ -555,17 +553,11 @@ cd tests
 pytest --cov=app --cov-report=term-missing
 ```
 
-> **Nota importante:** o ambiente usado nesta rodada de finalização não
-> tinha acesso à internet, então não foi possível instalar as dependências
-> (`fastapi`, `sqlalchemy`, `pytest` etc.) nem rodar `pytest` de fato. Toda a
-> validação foi feita por outras vias: `python -m py_compile` em **todos** os
-> arquivos `.py` do projeto (confirmando ausência de erros de sintaxe) e
-> renderização isolada de **todos** os templates Jinja2 com dados fictícios
-> equivalentes ao que a API devolveria (confirmando que não há erro de
-> template). Ainda assim, **rodar `pytest -v` de verdade em um ambiente com
-> internet, antes da entrega, continua sendo essencial** — é a única forma de
-> confirmar que a lógica está correta de ponta a ponta, e não só
-> sintaticamente válida.
+Execução Detalhada dos Testes (Visão por cenário):
+```bash
+cd tests
+pytest -v
+```
 
 ---
 
@@ -607,48 +599,3 @@ de teste usados no roteiro de testes manuais do `README.md`.
   só vê as próprias vendas do dia corrente na prática (o turno de caixa já
   delimita isso naturalmente); o filtro por período é uma ferramenta de
   análise gerencial, então faz mais sentido só no dashboard administrativo.
-
----
-
-## 9. O que foi implementado nesta rodada de finalização
-
-Partindo da documentação original do projeto (seção "O que ainda falta"),
-os seguintes itens foram implementados:
-
-1. **Tela de cadastro/edição de produto pelo admin** — blueprint
-   `web/app/routes/produtos.py` + template `admin/produtos.html` + link de
-   navegação no dashboard. Antes só era possível via `seed_produtos.py` ou
-   diretamente pelo Swagger da API.
-2. **Cancelamento de venda** — endpoint `POST /vendas/{id}/cancelar` na API
-   (devolve estoque, muda status para `cancelada`, recusa cancelar duas
-   vezes) + botão "Cancelar" por linha na tabela de vendas do dashboard
-   (só para vendas concluídas, com confirmação antes de enviar).
-3. **Filtro por período no dashboard** — parâmetros opcionais
-   `data_inicio`/`data_fim` em `GET /vendas` na API + formulário de data no
-   dashboard, preservado nos links/formulários da página (inclusive no
-   cancelamento de venda, para não perder o filtro ativo).
-4. **Autenticação simplificada para `bcrypt` + `PyJWT`** — a troca de
-   `passlib`/`python-jose` por chamadas diretas ao pacote `bcrypt` e ao
-   `PyJWT` (algoritmo HS256, sem dependência do pacote `cryptography`)
-   elimina um problema de compatibilidade entre versões recentes do
-   `bcrypt` e o `passlib`, e reduz o atrito de instalação em máquinas
-   Windows sem permissão de administrador (menos pacotes que exigem
-   compilação). O projeto usa exclusivamente o MySQL Workbench (ou outra
-   instalação local do MySQL) para o banco de dados — sem Docker.
-
-Além disso, **todos os comentários de código foram removidos** de todos os
-arquivos do projeto (Python, JavaScript, CSS e HTML) — o código foi
-reescrito para ser autoexplicativo através de nomes de função e variável em
-português, e esta documentação técnica assume o papel de explicar o "porquê"
-por trás de cada decisão que antes estava em comentários inline.
-
-O que **ainda depende da equipe rodar de verdade** (ambiente sem internet
-nesta finalização, listado também no `README.md`):
-- `pip install -r requirements.txt` em `api/` e `web/`.
-- `pytest -v` e `pytest --cov=app --cov-report=term-missing` (conferir os
-  70% mínimos de cobertura).
-- Rodar a API contra o MySQL real criado no Workbench e fazer o teste
-  manual ponta a ponta descrito no `README.md`.
-- Montar o DER visual e os prints de tela para a documentação final da
-  Sprint 7, e revisar a apresentação para que todos os integrantes saibam
-  explicar a própria parte.

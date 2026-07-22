@@ -1,7 +1,8 @@
 # PDV Enxuto — Documentação Técnica Completa
 
-Projeto Integrador — Módulo III — Informática para Internet
-Tema: ERP enxuto / gestão comercial (PDV com login por perfil, vendas e caixa)
+- Tema: PDV Enxuto / ERP enxuto para gestão comercial
+- Integrantes: Elizabeth, Gustavo, Guilherme, Levi, Vitor
+- Turma: 002014 Tec. Informática para Internet — Módulo III
 
 ---
 
@@ -15,6 +16,45 @@ Tema: ERP enxuto / gestão comercial (PDV com login por perfil, vendas e caixa)
 6. [Testes automatizados (Pytest)](#6-testes-automatizados-pytest)
 7. [Scripts de apoio (seeds)](#7-scripts-de-apoio-seeds)
 8. [Decisões de arquitetura e trade-offs](#8-decisões-de-arquitetura-e-trade-offs)
+
+---
+
+## Descrição do projeto e objetivos
+  O projeto consiste em um sistema de gestão comercial com foco em operações de ponto de venda (PDV), controle de caixa, vendas e estoque. 
+  A proposta foi organizada em duas camadas principais:
+- Back-end em FastAPI para regras de negócio, autenticação e persistência de dados.
+- Front-end em Flask para interação via páginas web, com fluxo de login por perfil e telas de administração/operador.
+
+  Os objetivos principais são:
+- facilitar o registro de vendas e o controle de estoque;
+- permitir abertura e fechamento de caixa com rastreio de valores;
+- oferecer uma interface administrativa para gestão de produtos e usuários;
+- aplicar conceitos de desenvolvimento web, APIs REST, autenticação e testes automatizados.
+
+## Requisitos funcionais e não funcionais
+### Requisitos funcionais
+- Login com diferentes perfis: operador de caixa e administrador.
+- Autenticação com JWT e senha administrativa para acesso de administrador.
+- Abertura e fechamento de turnos de caixa.
+- Cadastro, listagem, edição e desativação de produtos.
+- Registro de vendas com múltiplos itens e formas de pagamento.
+- Cancelamento de vendas por administrador, com devolução automática ao estoque.
+- Dashboard administrativo com filtros por período e visão consolidada de vendas/caixa.
+
+### Requisitos não funcionais
+- Segurança: uso de hash de senha com bcrypt e tokens JWT.
+- Controle de acesso por perfil (RBAC).
+- Consistência transacional nas vendas e no estoque.
+- Testabilidade: suíte automatizada com pytest.
+- Manutenibilidade: separação entre API, aplicação web e camada de dados.
+
+## Tecnologias utilizadas e justificativas
+- FastAPI: criação rápida de API REST com validação automática via Pydantic e documentação interativa.
+- SQLAlchemy: mapeamento objeto-relacional para facilitar a manipulação do banco de dados.
+- MySQL: armazenamento persistente dos dados do sistema.
+- PyJWT e bcrypt: autenticação segura e geração de tokens JWT.
+- Flask + Jinja2: camada web simples para renderização de páginas e integração com a API.
+- Pytest: automação de testes com foco em validação de regras de negócio.
 
 ---
 
@@ -598,3 +638,17 @@ de teste usados no roteiro de testes manuais do `README.md`.
   só vê as próprias vendas do dia corrente na prática (o turno de caixa já
   delimita isso naturalmente); o filtro por período é uma ferramenta de
   análise gerencial, então faz mais sentido só no dashboard administrativo.
+
+## Dificuldades, decisões técnicas e aprendizados
+- A principal dificuldade foi organizar a comunicação entre a camada web e a API sem expor diretamente a lógica de negócio no front-end.
+- A decisão de centralizar as regras de negócio na API e deixar o Flask como cliente autenticado ajudou na separação de responsabilidades.
+- O uso de transações para vendas e estoque mostrou-se essencial para manter consistência nos processos de negócio.
+- O projeto reforçou conceitos de autenticação, controle de acesso, integração de sistemas e documentação técnica.
+
+## Referências
+- FastAPI Documentation
+- Flask Documentation
+- SQLAlchemy Documentation
+- Pytest Documentation
+- MySQL Documentation
+- Documentação do projeto em README.md

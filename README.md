@@ -3,11 +3,9 @@
 Sistema de gestão comercial (ERP enxuto / PDV) com back-end em **FastAPI + MySQL** (autenticação com `bcrypt` + `PyJWT`)
 e front-end em **Flask + Jinja2**.
 
-> **Status atual:** todas as funcionalidades previstas no roteiro (login por
-> perfil, caixa/turno, terminal de venda, cadastro/edição de produtos,
-> cancelamento de venda, filtro por período e dashboard administrativo)
-> estão implementadas. Veja `DOCUMENTACAO_TECNICA.md` para o detalhamento
-> completo de cada parte do código.
+> **Status atual:** 
+Todas as funcionalidades previstas no roteiro (login por perfil, caixa/turno, terminal de venda, cadastro/edição de produtos, cancelamento de venda, filtro por período e dashboard administrativo) estão implementadas.
+Veja `DOCUMENTACAO_TECNICA.md` para o detalhamento completo de cada parte do código.
 
 ## Como funciona o login
 
@@ -75,7 +73,7 @@ Documentação automática: http://localhost:8000/docs
 ```bash
 cd web
 python -m venv venv
-source venv/bin/activate
+venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
 python app/main.py
@@ -83,10 +81,10 @@ python app/main.py
 Acesse: http://localhost:5000
 
 ### Usuários de teste (criados pelo `seed_usuarios.py`)
-| Login     | Senha     | Marcar "Administrador"? | Senha administrativa            |
-|-----------|-----------|--------------------------|----------------------------------|
+| Login     | Senha     | Marcar "Administrador"? | Senha administrativa                   |
+|-----------|-----------|--------------------------|---------------------------------------|
 | `admin`   | `admin123`| Sim                      | valor de `ADMIN_MASTER_KEY` no `.env` |
-| `caixa1`  | `caixa123`| Não                      | —                                |
+| `caixa1`  | `caixa123`| Não                      | —                                     |
 
 ## Testes automatizados
 ```bash

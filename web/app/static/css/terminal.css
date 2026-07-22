@@ -409,6 +409,7 @@
 
 .form-produto input[type="text"],
 .form-produto input[type="password"],
+.form-produto input[type="number"],
 .form-produto select {
   width: 100%;
   background: var(--surface);

@@ -1,8 +1,7 @@
 {% extends "base.html" %}
-
 {% block titulo %}Usuários — Painel do Administrador{% endblock %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
 {% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
 {% endblock %}
 {% block conteudo %}
 <div class="pagina-interna pagina-admin">
@@ -106,5 +105,6 @@
     <p class="texto-vazio">Nenhum usuário cadastrado ainda.</p>
     {% endif %}
   </section>
+  <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
 </div>
 {% endblock %}

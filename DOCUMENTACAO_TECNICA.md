@@ -15,7 +15,6 @@ Tema: ERP enxuto / gestão comercial (PDV com login por perfil, vendas e caixa)
 6. [Testes automatizados (Pytest)](#6-testes-automatizados-pytest)
 7. [Scripts de apoio (seeds)](#7-scripts-de-apoio-seeds)
 8. [Decisões de arquitetura e trade-offs](#8-decisões-de-arquitetura-e-trade-offs)
-9. [O que foi implementado nesta rodada de finalização](#9-o-que-foi-implementado-nesta-rodada-de-finalização)
 
 ---
 

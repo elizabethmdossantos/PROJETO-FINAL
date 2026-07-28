@@ -45,7 +45,7 @@
           <input type="number" min="0" id="estoque" name="estoque" required placeholder="0">
         </div>
       </div>
-      <button type="submit" class="botao-entrar botao-cadastrar-produto">Cadastrar produto</button>
+      <button type="submit" class="botao-salvar">Cadastrar produto</button>
     </form>
   </section>
 
@@ -79,7 +79,7 @@
               <span class="chave-trilho"></span>
             </label>
           </td>
-          <td><button form="form-produto-{{ produto.id }}" type="submit" class="botao-salvar-produto">Salvar</button></td>
+          <td><button form="form-produto-{{ produto.id }}" type="submit" class="botao-salvar">Salvar</button></td>
         </tr>
         {% endfor %}
       </tbody>

@@ -47,7 +47,7 @@
         </label>
       </div>
 
-      <button type="submit" class="botao-entrar">Cadastrar usuário</button>
+      <button type="submit" class="botao-salvar">Cadastrar usuário</button>
     </form>
   </section>
 
@@ -61,7 +61,7 @@
           <th>Login</th>
           <th>Perfil</th>
           <th>Status</th>
-          <th></th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -88,7 +88,7 @@
           </td>
           <td>
               <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <button type="submit" class="botao-salvar-produto">Salvar</button>
+                <button type="submit" class="botao-salvar">Salvar</button>
                 {% if usuario.login != 'admin' %}
                 <form method="POST" action="{{ url_for('admin.excluir_usuario', usuario_id=usuario.id) }}" onsubmit="return confirm('Excluir o usuário {{ usuario.nome }}?');" style="display:inline;">
                   <button type="submit" class="botao-remover">Excluir</button>

@@ -12,6 +12,8 @@ class FormaPagamento(str, enum.Enum):
     PIX = "pix"
     CARTAO = "cartao"
     VALE_REFEICAO = "vale_refeicao"
+    # Pedido feito pelo site da "Feira Online" e pago antes da retirada.
+    ONLINE = "online"
 
 
 class StatusVenda(str, enum.Enum):

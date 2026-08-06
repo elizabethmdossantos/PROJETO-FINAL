@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo %}Pedidos online — retirada{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-interna pagina-caixa">
+  <span class="selo">Perfil: Operador de caixa</span>
+  <h1>Pedidos da Feira Online aguardando retirada</h1>
+  <p>
+    Confirme a retirada só depois de conferir os itens com o cliente e o
+    número do pedido dele. A confirmação lança a venda automaticamente no seu
+    caixa aberto.
+  </p>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if not caixa_aberto %}
+    <div class="mensagem-erro">
+      Seu caixa está fechado. <a href="{{ url_for('pdv.caixa') }}">Abra o caixa</a> antes de confirmar retiradas.
+    </div>
+  {% endif %}
+
+  {% if pedidos %}
+  <div class="lista-fila-pedidos">
+    {% for pedido in pedidos %}
+    <div class="cartao-pedido">
+      <div>
+        <div class="cartao-pedido-numero">{{ pedido.numero_pedido }} — {{ pedido.nome_cliente }}</div>
+        <div class="cartao-pedido-itens">
+          {% for item in pedido.itens %}{{ item.quantidade }}x {{ item.nome_produto }}{% if not loop.last %}, {% endif %}{% endfor %}
+          · Total: R$ {{ "%.2f"|format(pedido.valor_total|float) }}
+        </div>
+      </div>
+      <form method="POST" action="{{ url_for('pdv.retirar_pedido_online', pedido_id=pedido.id) }}">
+        <button type="submit" class="botao-entrar" style="width:auto;" {% if not caixa_aberto %}disabled{% endif %}>
+          Confirmar retirada
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="texto-vazio">Nenhum pedido aguardando retirada no momento.</p>
+  {% endif %}
+
+  <a class="botao-link botao-entrar" href="{{ url_for('pdv.terminal') if caixa_aberto else url_for('pdv.caixa') }}">
+    ← Voltar ao terminal
+  </a>
+</div>
+{% endblock %}

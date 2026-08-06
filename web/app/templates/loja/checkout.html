@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block titulo %}Finalizar pedido — Feira Online{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-loja">
+  <div class="loja-header">
+    <div>
+      <span class="marca-eyebrow">Feira Online</span>
+      <h1 class="loja-marca-titulo">Finalizar pedido</h1>
+    </div>
+    <div class="loja-acoes">
+      <a class="botao-secundario" href="{{ url_for('loja.ver_carrinho') }}">← Voltar para a feira</a>
+    </div>
+  </div>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <table class="carrinho-tabela">
+    <thead>
+      <tr><th>Produto</th><th>Qtd.</th><th>Subtotal</th></tr>
+    </thead>
+    <tbody>
+      {% for item in itens %}
+      <tr>
+        <td>{{ item.nome }}</td>
+        <td>{{ item.quantidade }}</td>
+        <td>R$ {{ "%.2f"|format(item.subtotal) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="resumo-caixa">
+    <div class="recibo-linha"><span>Subtotal dos produtos</span><span>R$ {{ "%.2f"|format(subtotal) }}</span></div>
+    <div class="recibo-linha"><span>Taxa de serviço (8%)</span><span>R$ {{ "%.2f"|format(taxa_servico) }}</span></div>
+    <div class="recibo-linha destaque"><span>Total a pagar agora</span><span>R$ {{ "%.2f"|format(total) }}</span></div>
+  </div>
+
+  <form method="POST" action="{{ url_for('loja.checkout') }}" class="form-caixa" style="max-width:420px; margin-top:24px;">
+    <div class="campo">
+      <label for="nome_cliente">Seu nome</label>
+      <input type="text" id="nome_cliente" name="nome_cliente" required autofocus>
+    </div>
+    <div class="campo">
+      <label for="telefone_cliente">Telefone (com DDD)</label>
+      <input type="text" id="telefone_cliente" name="telefone_cliente" placeholder="82999990000" required>
+      <small style="color: var(--muted); font-size: 0.78rem;">
+        Guarde esse número: junto com o código do pedido, ele é usado para
+        consultar ou cancelar sua feira depois.
+      </small>
+    </div>
+    <button type="submit" class="botao-entrar">
+      Confirmar e pagar R$ {{ "%.2f"|format(total) }}
+    </button>
+    <p class="aviso-taxa-servico">
+      Pagamento simulado neste projeto acadêmico. Ao confirmar, o pedido é
+      registrado como pago e um funcionário vai montar sua feira. Se você
+      cancelar depois de pago, será cobrada uma taxa de cancelamento de 15%
+      sobre o valor total.
+    </p>
+  </form>
+</div>
+{% endblock %}

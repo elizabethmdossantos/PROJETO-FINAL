@@ -129,6 +129,59 @@ def buscar_produto():
     return jsonify(resposta.json()), resposta.status_code
 
 
+@pdv_bp.route("/pedidos-online", methods=["GET"])
+def pedidos_online():
+    if not _logado():
+        return redirect(url_for("auth.login"))
+
+    caixa_aberto = _caixa_atual()
+    pedidos = []
+    try:
+        resposta = requests.get(
+            f"{API_URL}/pedidos-online",
+            headers=_headers(),
+            params={"status_filtro": "aguardando_retirada"},
+            timeout=5,
+        )
+        if resposta.status_code == 200:
+            pedidos = resposta.json()
+    except requests.exceptions.RequestException:
+        flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+
+    return render_template(
+        "pdv/pedidos_online.html",
+        usuario=session.get("usuario"),
+        caixa_aberto=caixa_aberto,
+        pedidos=pedidos,
+    )
+
+
+@pdv_bp.route("/pedidos-online/<int:pedido_id>/retirar", methods=["POST"])
+def retirar_pedido_online(pedido_id):
+    if not _logado():
+        return redirect(url_for("auth.login"))
+
+    try:
+        resposta = requests.post(
+            f"{API_URL}/pedidos-online/{pedido_id}/retirar", headers=_headers(), timeout=5
+        )
+    except requests.exceptions.RequestException:
+        flash("Não foi possível conectar à API. Verifique se ela está no ar.", "erro")
+        return redirect(url_for("pdv.pedidos_online"))
+
+    if resposta.status_code != 200:
+        mensagem = resposta.json().get("detail", "Não foi possível confirmar a retirada.")
+        flash(mensagem, "erro")
+    else:
+        pedido = resposta.json()
+        flash(
+            f"Pedido {pedido['numero_pedido']} entregue e lançado no caixa como venda.",
+            "sucesso",
+        )
+
+    return redirect(url_for("pdv.pedidos_online"))
+
+
 @pdv_bp.route("/terminal/finalizar", methods=["POST"])
 def finalizar_venda():
     if not _logado():

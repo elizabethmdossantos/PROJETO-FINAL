@@ -48,6 +48,7 @@ def criar():
         "nome": request.form.get("nome", "").strip(),
         "preco": request.form.get("preco", "0"),
         "estoque": request.form.get("estoque", "0"),
+        "disponivel_loja": request.form.get("disponivel_loja") == "on",
     }
 
     try:
@@ -77,6 +78,7 @@ def editar(produto_id):
         "preco": request.form.get("preco", "0"),
         "estoque": request.form.get("estoque", "0"),
         "ativo": request.form.get("ativo") == "on",
+        "disponivel_loja": request.form.get("disponivel_loja") == "on",
     }
 
     try:

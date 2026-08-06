@@ -12,7 +12,19 @@
     <a class="nav-admin-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
     <a class="nav-admin-link" href="{{ url_for('produtos.listar') }}">Produtos</a>
     <a class="nav-admin-link nav-admin-link-ativo" href="{{ url_for('admin.novo_usuario') }}">Usuários</a>
+      <a class="nav-admin-link" href="{{ url_for('pdv.pedidos_online') }}">Pedidos online</a>
+    <a class="nav-admin-link" href="{{ url_for('loja.catalogo') }}" target="_blank" rel="noopener">Ver loja ↗</a>
   </nav>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
   <section class="secao-admin">
     <h2>Cadastrar novo usuário</h2>
@@ -54,6 +66,9 @@
   <section class="secao-admin">
     <h2>Usuários cadastrados</h2>
     {% if usuarios %}
+    {% for usuario in usuarios %}
+    <form id="form-usuario-{{ usuario.id }}" method="POST" action="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}"></form>
+    {% endfor %}
     <table class="tabela-admin">
       <thead>
         <tr>
@@ -68,34 +83,32 @@
         {% for usuario in usuarios %}
         <tr>
           <td>
-            <form method="POST" action="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}" class="form-produto">
-              <input type="text" name="nome" value="{{ usuario.nome }}" required>
+            <input form="form-usuario-{{ usuario.id }}" type="text" name="nome" value="{{ usuario.nome }}" required>
           </td>
           <td>
-              <input type="text" name="login" value="{{ usuario.login }}" required>
+            <input form="form-usuario-{{ usuario.id }}" type="text" name="login" value="{{ usuario.login }}" required>
           </td>
           <td>
-              <select name="perfil">
-                <option value="caixa" {% if usuario.perfil == 'caixa' %}selected{% endif %}>Caixa</option>
-                <option value="admin" {% if usuario.perfil == 'admin' %}selected{% endif %}>Administrador</option>
-              </select>
+            <select form="form-usuario-{{ usuario.id }}" name="perfil">
+              <option value="caixa" {% if usuario.perfil == 'caixa' %}selected{% endif %}>Caixa</option>
+              <option value="admin" {% if usuario.perfil == 'admin' %}selected{% endif %}>Administrador</option>
+            </select>
+          </td>
+          <td class="celula-ativo">
+            <label class="chave chave-pequena">
+              <input form="form-usuario-{{ usuario.id }}" type="checkbox" name="ativo" {% if usuario.ativo %}checked{% endif %}>
+              <span class="chave-trilho"></span>
+            </label>
           </td>
           <td>
-              <label>
-                <input type="checkbox" name="ativo" {% if usuario.ativo %}checked{% endif %}>
-                Ativo
-              </label>
-          </td>
-          <td>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <button type="submit" class="botao-salvar-produto">Salvar</button>
-                {% if usuario.login != 'admin' %}
-                <form method="POST" action="{{ url_for('admin.excluir_usuario', usuario_id=usuario.id) }}" onsubmit="return confirm('Excluir o usuário {{ usuario.nome }}?');" style="display:inline;">
-                  <button type="submit" class="botao-remover">Excluir</button>
-                </form>
-                {% endif %}
-              </div>
-            </form>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button form="form-usuario-{{ usuario.id }}" type="submit" class="botao-salvar-produto">Salvar</button>
+              {% if usuario.login != 'admin' %}
+              <form method="POST" action="{{ url_for('admin.excluir_usuario', usuario_id=usuario.id) }}" onsubmit="return confirm('Excluir o usuário {{ usuario.nome }}?');" style="display:inline;">
+                <button type="submit" class="botao-remover">Excluir</button>
+              </form>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% endfor %}

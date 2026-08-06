@@ -16,6 +16,8 @@
 6. [Testes automatizados (Pytest)](#6-testes-automatizados-pytest)
 7. [Scripts de apoio (seeds)](#7-scripts-de-apoio-seeds)
 8. [Decisões de arquitetura e trade-offs](#8-decisões-de-arquitetura-e-trade-offs)
+9. [Feira Online — catálogo, pedido e retirada em loja](#9-feira-online--catálogo-pedido-e-retirada-em-loja)
+10. [Correções aplicadas nesta versão](#10-correções-aplicadas-nesta-versão)
 
 ---
 
@@ -36,10 +38,15 @@
 - Login com diferentes perfis: operador de caixa e administrador.
 - Autenticação com JWT e senha administrativa para acesso de administrador.
 - Abertura e fechamento de turnos de caixa.
-- Cadastro, listagem, edição e desativação de produtos.
+- Cadastro, listagem (paginada, com busca), edição e desativação de produtos.
 - Registro de vendas com múltiplos itens e formas de pagamento.
 - Cancelamento de vendas por administrador, com devolução automática ao estoque.
 - Dashboard administrativo com filtros por período e visão consolidada de vendas/caixa.
+- Gestão de usuários por administrador (criar, editar perfil, ativar/desativar, excluir).
+- **Feira Online (diferencial):** catálogo público para o cliente montar uma lista
+  de compras, pagar uma taxa de serviço de 8% para que um funcionário monte a
+  feira, e retirar tudo pronto na loja apresentando um número de pedido —
+  com possibilidade de cancelamento mediante taxa de 15%.
 
 ### Requisitos não funcionais
 - Segurança: uso de hash de senha com bcrypt e tokens JWT.
@@ -113,7 +120,7 @@ Essa separação existe por dois motivos:
 
 ## 2. Banco de dados — modelagem
 
-Cinco tabelas, todas criadas automaticamente pela API na primeira execução
+Sete tabelas, todas criadas automaticamente pela API na primeira execução
 (`Base.metadata.create_all()`, chamado em `api/app/main.py` e nos scripts de
 seed). Não é necessário rodar nenhum script SQL manual de criação de tabela.
 
@@ -129,14 +136,15 @@ seed). Não é necessário rodar nenhum script SQL manual de criação de tabela
 | criado_em     | DateTime                  | preenchido pelo banco (`server_default=func.now()`) |
 
 ### `produtos`
-| Coluna     | Tipo              | Observação |
-|------------|-------------------|------------|
-| id         | Integer (PK)      | id interno, nunca exposto ao operador |
-| codigo     | String(30), único | o que o operador digita/bipa no terminal |
-| nome       | String(120)       | |
-| preco      | Numeric(10,2)     | preço "de tabela" atual |
-| estoque    | Integer           | quantidade disponível |
-| ativo      | Boolean           | produto descontinuado não aparece mais no terminal |
+| Coluna           | Tipo              | Observação |
+|------------------|-------------------|------------|
+| id               | Integer (PK)      | id interno, nunca exposto ao operador |
+| codigo           | String(30), único | o que o operador digita/bipa no terminal |
+| nome             | String(120)       | |
+| preco            | Numeric(10,2)     | preço "de tabela" atual |
+| estoque          | Integer           | quantidade disponível |
+| ativo            | Boolean           | produto descontinuado não aparece mais no terminal nem na loja |
+| disponivel_loja  | Boolean           | controla, **independente de `ativo`**, se o produto aparece no catálogo público da Feira Online — permite vender algo só no balcão físico |
 
 ### `caixas` (turno de trabalho do operador)
 | Coluna            | Tipo                        | Observação |
@@ -155,7 +163,7 @@ seed). Não é necessário rodar nenhum script SQL manual de criação de tabela
 | id               | Integer (PK)                        | |
 | caixa_id         | FK → caixas.id                        | a qual turno a venda pertence |
 | usuario_id       | FK → usuarios.id                      | quem vendeu (redundante com o caixa, mas útil para consultas diretas) |
-| forma_pagamento  | Enum(`pix`, `cartao`, `vale_refeicao`)  | |
+| forma_pagamento  | Enum(`pix`, `cartao`, `vale_refeicao`, `online`)  | `online` identifica vendas geradas pela retirada de um pedido da Feira Online |
 | status           | Enum(`concluida`, `cancelada`)         | usado pelo cancelamento de venda |
 | valor_total      | Numeric(10,2)                          | soma dos itens no momento da venda |
 | criado_em        | DateTime                                | usado no filtro por período do dashboard |
@@ -176,10 +184,38 @@ seed). Não é necessário rodar nenhum script SQL manual de criação de tabela
 - Guardar o preço praticado no momento da venda ("snapshot") é o que garante que o histórico financeiro seja imutável — um requisito básico de integridade para
 qualquer sistema de vendas.
 
+### `pedidos_online` (Feira Online)
+| Coluna                        | Tipo                                             | Observação |
+|-------------------------------|---------------------------------------------------|------------|
+| id                             | Integer (PK)                                     | |
+| numero_pedido                  | String(20), único                                 | comprovante mostrado ao cliente (ex.: `F260802A1B2C`) |
+| nome_cliente / telefone_cliente | String                                            | cliente não tem conta — esse par funciona como "senha" para consultar/cancelar |
+| status                         | Enum(`aguardando_retirada`, `retirado`, `cancelado`) | |
+| subtotal                       | Numeric(10,2)                                    | soma dos itens |
+| taxa_servico_percentual/valor  | Numeric                                          | snapshot dos 8% cobrados no momento da compra |
+| valor_total                    | Numeric(10,2)                                    | subtotal + taxa de serviço |
+| taxa_cancelamento_percentual/valor | Numeric, opcionais                          | só preenchidos se o pedido for cancelado (15%) |
+| valor_reembolsado              | Numeric(10,2), opcional                          | valor_total − taxa de cancelamento |
+| venda_id                       | FK → vendas.id, opcional                          | preenchido quando o pedido é retirado (liga ao registro de venda) |
+| criado_em / retirado_em / cancelado_em | DateTime                                 | |
+
+### `itens_pedido_online`
+| Coluna          | Tipo             | Observação |
+|-----------------|-------------------|------------|
+| id              | Integer (PK)      | |
+| pedido_id       | FK → pedidos_online.id | |
+| produto_id      | FK → produtos.id  | |
+| quantidade      | Integer           | |
+| preco_unitario  | Numeric(10,2)     | snapshot, mesmo raciocínio de `itens_venda` |
+| subtotal        | Numeric(10,2)     | |
+
 ### Relacionamentos (resumo do DER)
 ```
 usuarios (1) ───< (N) caixas (1) ───< (N) vendas (1) ───< (N) itens_venda >─── (N) produtos
                                           usuarios (1) ───< (N) vendas
+
+pedidos_online (1) ───< (N) itens_pedido_online >─── (N) produtos
+pedidos_online (0..1) ───> (1) vendas   # preenchido só quando o pedido é retirado
 ```
 - Um usuário pode ter vários caixas (turnos) ao longo do tempo, mas **só um
   aberto por vez** — essa regra não está no banco (nenhuma constraint SQL
@@ -188,6 +224,11 @@ usuarios (1) ───< (N) caixas (1) ───< (N) vendas (1) ───< (N) 
   que verifica isso antes de inserir.
 - Uma venda pertence a exatamente um caixa e a um usuário (o mesmo dono do caixa).
 - Uma venda tem N itens; cada item aponta para um produto.
+- Um pedido online tem N itens; cada item aponta para um produto (mesmo
+  padrão de `vendas`/`itens_venda`, reaproveitado de propósito).
+- Quando um pedido online é retirado, uma `venda` é criada e o pedido passa a
+  referenciá-la — assim o faturamento da Feira Online aparece no mesmo
+  relatório e no mesmo fechamento de caixa de qualquer outra venda.
 
 ---
 
@@ -349,6 +390,23 @@ Fluxo:
   calculou.
 - `GET /caixa` (admin): histórico de todos os turnos, mais recente primeiro.
 
+**`usuarios.py`** (admin, em todos os endpoints)
+- `GET /usuarios`, `POST /usuarios`, `PUT /usuarios/{id}`, `DELETE /usuarios/{id}`.
+- Todos exigem `Depends(exigir_admin)` — é aqui que perfis são concedidos, o
+  ponto mais sensível do sistema (ver seção 10, item 1).
+- `DELETE` bloqueia o login `admin` (`400`) e trata `IntegrityError` de quem
+  tem caixa/venda vinculada (`409`), em vez de deixar o erro estourar.
+
+**`pedidos_online.py`** (Feira Online — detalhado na seção 9)
+- `GET /catalogo`, `POST /catalogo/verificar-quantidade`: públicos, sem
+  autenticação.
+- `POST /pedidos-online`, `POST /pedidos-online/consultar`,
+  `POST /pedidos-online/cancelar`: públicos, protegidos pelo par
+  número do pedido + telefone.
+- `GET /pedidos-online`, `POST /pedidos-online/{id}/retirar`: exigem
+  `Depends(usuario_atual)` (qualquer funcionário logado, não só admin —
+  confirmar retirada é uma tarefa operacional de balcão).
+
 **`vendas.py`** — o coração do sistema.
 - `POST /vendas`:
   1. Confirma que o usuário tem caixa aberto (`_caixa_aberto_do_usuario`,
@@ -396,8 +454,8 @@ usando a biblioteca `requests`. Cada blueprint corresponde a uma área da
 aplicação.
 
 **`main.py`** — fábrica da aplicação (`criar_app()`): define a `secret_key`
-(usada pelo Flask para assinar o cookie de sessão) e registra os quatro
-blueprints (`auth`, `admin`, `pdv`, `produtos`).
+(usada pelo Flask para assinar o cookie de sessão) e registra os cinco
+blueprints (`auth`, `admin`, `pdv`, `produtos`, `loja`).
 
 **`routes/auth.py`**
 - `GET /` → redireciona para `/login`.
@@ -424,6 +482,9 @@ blueprints (`auth`, `admin`, `pdv`, `produtos`).
   autenticado. O JS chama essas rotas Flask via `fetch`, o Flask injeta o
   header `Authorization` (lido da sessão) e repassa para a API, devolvendo a
   resposta como JSON puro para o navegador.
+- `GET /pdv/pedidos-online` e `POST /pdv/pedidos-online/<id>/retirar`:
+  **novas**, tela do funcionário para conferir a fila de pedidos da Feira
+  Online e confirmar retiradas (detalhe completo na seção 9).
 
 **`routes/admin.py`** — dashboard, gestão de vendas e gestão de usuários.
 - `GET /admin/dashboard`: lê os parâmetros de query `data_inicio`/`data_fim`
@@ -445,6 +506,13 @@ blueprints (`auth`, `admin`, `pdv`, `produtos`).
   `POST /produtos` na API.
 - `POST /admin/produtos/<id>/editar`: lê os campos da linha da tabela
   (nome, preço, estoque, e a chave de "ativo") e chama `PATCH /produtos/{id}`.
+
+**`routes/loja.py`** — **blueprint novo, público** (nenhuma rota exige
+login), o front-end da Feira Online (detalhe completo na seção 9). Guarda o
+carrinho em `session["carrinho_feira"]` — no servidor, nunca em
+`localStorage`. Todas as chamadas à API usam `try/except
+requests.exceptions.RequestException`, então se a API cair o cliente vê uma
+mensagem amigável em vez de uma tela de erro.
 
 Em todas as rotas administrativas, a primeira linha verifica
 `session.get("perfil") == "admin"` e redireciona para o login caso contrário
@@ -494,13 +562,34 @@ substituta) à proteção real que já existe na API via `exigir_admin`.
   que permite alterar nome, login, perfil e status, e tem botões para salvar
   ou excluir. A exclusão está bloqueada para o usuário `admin` de sistema, e
   a ação de remover pede confirmação do administrador antes de enviar a
-  requisição para a API.
+  requisição para a API. **Corrigido nesta finalização:** a tabela usava um
+  `<form>` aberto dentro de um `<td>` sem fechar (HTML inválido, o navegador
+  fechava a tag no primeiro `</td>` e login/perfil/status nunca eram
+  enviados) — reescrita com o mesmo padrão `form="form-usuario-{id}"` de
+  `admin/produtos.html`, e o bloco de mensagens de flash, que estava
+  ausente, foi adicionado.
+- **`pdv/pedidos_online.html`** — **template novo**: fila de pedidos com
+  status `aguardando_retirada`, cada um com um botão "Confirmar retirada"
+  desabilitado se o funcionário não tiver caixa aberto.
+- **`loja/*.html`** — **templates novos**, front-end público da Feira
+  Online: `catalogo.html` (grade de produtos com etiqueta de disponibilidade
+  e formulário de adicionar ao carrinho), `carrinho.html` (tabela editável +
+  resumo com subtotal/taxa/total), `checkout.html` (formulário de
+  nome/telefone com o resumo final antes de confirmar), `comprovante.html`
+  (número do pedido em destaque, itens, status, e botão de cancelar quando
+  aplicável) e `consultar.html` (formulário de busca por número + telefone).
 
 ### 5.2 CSS
 
 - **`main.css`**: variáveis de cor/tipografia (`:root`), estilos da tela de
   login (painel de marca + formulário) e componentes reutilizados em todas
   as telas internas (botões, campos, chave/alternador, mensagens de erro).
+- **`loja.css`** — **arquivo novo**: estilos exclusivos da Feira Online
+  (grade de produtos, etiquetas de disponibilidade, resumo de totais,
+  número de comprovante). Reaproveita as variáveis de cor definidas em
+  `main.css` e os componentes genéricos de `terminal.css` (mensagens,
+  botões, campos) — por isso todo template de `loja/` carrega os três
+  arquivos.
 - **`terminal.css`**: estilos específicos do terminal de venda, do dashboard
   administrativo e — **acrescentados nesta finalização** — da navegação
   entre dashboard/produtos (`.nav-admin`), do formulário de filtro por
@@ -536,7 +625,10 @@ Todos os testes rodam contra **SQLite em memória** (configurado em
 `tests/conftest.py`, que sobrescreve a dependência `get_db` do FastAPI via
 `app.dependency_overrides`), então não é necessário ter o MySQL de pé para
 rodar `pytest`. Isso é importante para CI/CD e para rodar os testes rápido
-durante o desenvolvimento.
+durante o desenvolvimento. O `conftest.py` também habilita
+`PRAGMA foreign_keys=ON` na conexão SQLite — por padrão o SQLite não aplica
+chaves estrangeiras, e sem isso os testes não pegariam problemas de
+integridade referencial que só apareceriam de verdade no MySQL de produção.
 
 **`conftest.py`** define as fixtures reutilizadas por todos os testes:
 - `db_session`: cria as tabelas antes de cada teste e as destrói depois —
@@ -565,7 +657,7 @@ fechamento de caixa não soma uma venda que foi cancelada depois de registrada,
 confirmando que o cancelamento de vendas não "quebra" o fechamento de caixa
 já existente.
 
-**`test_api_vendas.py`** (12 cenários): venda com sucesso (debita estoque e
+**`test_api_vendas.py`** (11 cenários): venda com sucesso (debita estoque e
 calcula total certo), venda com múltiplos itens, venda sem caixa aberto
 (`409`), produto inexistente (`404`), estoque insuficiente (`409`, e
 confirma que o estoque **não** foi alterado nesse caso), operador vendo
@@ -575,16 +667,37 @@ cancelar a mesma venda duas vezes é recusado (`409`), um operador (não-admin)
 não pode cancelar uma venda (`403`), e o filtro por período (`data_inicio`/
 `data_fim`) exclui corretamente vendas fora do intervalo pedido.
 
-**`test_api_produtos.py`** (7 cenários, **arquivo novo**): cadastro de
+**`test_api_produtos.py`** (7 cenários): cadastro de
 produto com sucesso, operador não pode cadastrar (`403`), código duplicado
 é recusado (`409`), busca por código ignora produto inativo (`404` mesmo
 existindo no banco), atualização de preço/estoque via `PATCH`, operador não
 pode listar o estoque completo (`403`), e a listagem por padrão só traz
 produtos ativos.
 
-No total, **34 cenários de teste** cobrindo autenticação, RBAC, caixa,
-vendas (incluindo as regras de estoque e a transação "tudo ou nada") e
-produtos.
+**`test_api_usuarios.py`** (10 cenários, **arquivo novo**): foi este arquivo
+que revelou, durante a revisão do projeto, que o router `/usuarios` não
+exigia login algum — os primeiros testes (`sem_token_e_recusado`,
+`operador_comum_nao_pode`) documentam a correção. Cobre também: admin lista/
+cria/atualiza usuários com sucesso, login duplicado é recusado (`409`), o
+usuário `admin` padrão não pode ser excluído, e excluir um usuário com caixa
+vinculado retorna `409` tratado (em vez de um erro de integridade não
+tratado).
+
+**`test_api_pedidos_online.py`** (11 cenários, **arquivo novo**, cobre a
+Feira Online): o catálogo público nunca expõe o estoque exato; produto
+inativo não aparece no catálogo; `verificar-quantidade` acima do estoque
+informa o máximo disponível; criar pedido debita estoque e calcula a taxa de
+serviço (8%) corretamente; pedido com estoque insuficiente é recusado
+(`409`); consulta com telefone errado não encontra o pedido (`404`);
+cancelar devolve o estoque e cobra a taxa de cancelamento (15%) certinha;
+cancelar duas vezes é recusado; a fila de retirada exige login; confirmar
+retirada sem caixa aberto é recusado (`409`); e confirmar retirada gera a
+venda no caixa aberto, refletindo no fechamento de caixa.
+
+No total, **54 cenários de teste** cobrindo autenticação, RBAC, caixa,
+vendas (incluindo as regras de estoque e a transação "tudo ou nada"),
+produtos, usuários e a Feira Online — com **94% de cobertura** na camada da
+API (medido com `pytest --cov`, acima do mínimo de 70% pedido no roteiro).
 
 Para medir cobertura (requisito de 70% mínimo do roteiro):
 ```bash
@@ -639,11 +752,159 @@ de teste usados no roteiro de testes manuais do `README.md`.
   delimita isso naturalmente); o filtro por período é uma ferramenta de
   análise gerencial, então faz mais sentido só no dashboard administrativo.
 
+---
+
+## 9. Feira Online — catálogo, pedido e retirada em loja
+
+A Feira Online é o diferencial adicionado ao PDV Enxuto: um canal de venda
+pela internet no formato **Click & Collect** (compra online, retirada na
+loja física), usando a mesma base de produtos e a mesma lógica de estoque já
+existente — sem duplicar regra de negócio.
+
+### 9.1 Fluxo completo
+
+```
+Cliente (navegador, sem login)              Loja (funcionário logado)
+────────────────────────────────            ─────────────────────────
+GET  /loja                     ──────►  GET /catalogo (API, público)
+  vê produtos + disponibilidade
+  (sem estoque exato)
+
+POST /loja/carrinho/adicionar  ──────►  POST /catalogo/verificar-quantidade
+  só aqui, se passar do limite,           (informa o máximo só neste momento)
+  o cliente sabe a quantidade máxima
+
+GET  /loja/carrinho
+  vê subtotal + taxa de serviço (8%) + total
+
+POST /loja/checkout            ──────►  POST /pedidos-online (API)
+  informa nome + telefone                 • valida estoque (tudo ou nada)
+  recebe nº do pedido (comprovante)        • debita estoque na hora
+                                           • calcula subtotal/taxa/total
+                                           • gera numero_pedido único
+
+                                         Funcionário logado abre
+                                         GET /pdv/pedidos-online
+                                         (fila de pedidos "aguardando_retirada")
+
+Cliente chega com o nº do pedido ──────►  POST /pedidos-online/{id}/retirar
+                                           • exige caixa aberto do funcionário
+                                           • cria uma Venda (forma_pagamento=online)
+                                             vinculada ao caixa — SEM debitar
+                                             estoque de novo
+                                           • pedido passa a status=retirado
+
+  (opcional) POST /loja/pedido/.../cancelar ──►  POST /pedidos-online/cancelar
+     antes da retirada                            • devolve o estoque
+                                                    • cobra taxa de 15% sobre
+                                                      o valor total
+                                                    • mostra o valor a devolver
+```
+
+### 9.2 Por que o cliente não expõe estoque exato, e o funcionário sim
+
+O catálogo público (`GET /catalogo`, `api/app/routers/pedidos_online.py`)
+devolve só uma faixa de disponibilidade (`disponivel` / `poucas_unidades` /
+`indisponivel`), calculada a partir de um limite fixo
+(`LIMITE_POUCAS_UNIDADES = 5`, mesmo valor usado no alerta de estoque baixo
+do dashboard administrativo, para manter a mesma régua). Divulgar o número
+exato de unidades em estoque para qualquer visitante do site é uma
+informação comercialmente sensível (concorrentes podem monitorar o giro de
+produtos) e sem utilidade real para o cliente. Só quando ele tenta colocar
+mais do que existe no carrinho (`POST /catalogo/verificar-quantidade`) é que
+o número exato aparece — e mesmo assim, só o **máximo disponível para aquele
+item**, não o estoque de todo o catálogo.
+
+### 9.3 Por que o estoque é debitado na criação do pedido, e não na retirada
+
+Se o estoque só fosse debitado na retirada, dois clientes poderiam "comprar"
+a mesma última unidade ao mesmo tempo pela internet, e um deles chegaria à
+loja para descobrir que não tem o produto — mesmo já tendo pago. Debitar o
+estoque no momento do pagamento (criação do pedido) garante que todo pedido
+com status `aguardando_retirada` tem, de fato, produtos reservados fisicamente
+esperando por ele. O preço a pagar por essa escolha é que, se o pedido for
+cancelado, o estoque precisa ser devolvido explicitamente — o que o endpoint
+de cancelamento já faz.
+
+### 9.4 Por que a retirada gera uma `Venda` de verdade
+
+Em vez de tratar a Feira Online como um sistema paralelo, a confirmação de
+retirada (`POST /pedidos-online/{id}/retirar`) cria um registro em `vendas`
+(com `forma_pagamento=online`) vinculado ao **caixa aberto do funcionário
+que confirma a retirada**. Isso significa que:
+- o faturamento da loja (dashboard, filtro por período) já inclui a Feira
+  Online automaticamente, sem relatório separado;
+- o fechamento de caixa do funcionário reflete essas vendas normalmente;
+- a exigência de caixa aberto para confirmar retirada (`409` se não houver)
+  reaproveita a mesma regra que já existia para `POST /vendas`.
+
+O estoque **não** é debitado de novo nesse passo — ele já saiu na criação do
+pedido (seção 9.3); só os registros de `Venda`/`ItemVenda` são criados a
+partir do snapshot salvo em `ItemPedidoOnline`.
+
+### 9.5 Por que cliente não tem conta, e como isso é protegido
+
+Criar um sistema de contas de cliente (cadastro, senha, recuperação de
+senha) estava fora do escopo do prazo do projeto. Em vez disso, cada pedido
+é identificado pelo par **número do pedido + telefone usado na compra**
+(`PedidoOnlineConsultar`). Dois cuidados evitam que isso vire uma falha de
+privacidade:
+- a mensagem de erro é **idêntica** para "pedido não existe" e "telefone não
+  confere" (`_buscar_pedido_ou_404`), então não dá para descobrir por
+  tentativa e erro se um número de pedido é válido;
+- o número do pedido não é sequencial e previsível — é gerado com data +
+  5 caracteres aleatórios de um UUID (`_gerar_numero_pedido`), então não dá
+  para "adivinhar" pedidos de outros clientes tentando `F000001`, `F000002`...
+
+### 9.6 Rotas Flask novas
+
+| Blueprint | Rota | O que faz |
+|-----------|------|-----------|
+| `loja` (público) | `GET /loja` | catálogo com busca |
+| `loja` | `POST /loja/carrinho/adicionar` | adiciona item ao carrinho (sessão Flask) |
+| `loja` | `GET /loja/carrinho`, `POST .../atualizar`, `POST .../remover` | gerencia o carrinho |
+| `loja` | `GET/POST /loja/checkout` | coleta nome/telefone e cria o pedido na API |
+| `loja` | `GET /loja/pedido/<numero>` | comprovante (número, itens, totais, status) |
+| `loja` | `POST /loja/pedido/<numero>/cancelar` | cancela e mostra o valor a devolver |
+| `loja` | `GET/POST /loja/consultar` | formulário de consulta por número + telefone |
+| `pdv` (autenticado) | `GET /pdv/pedidos-online` | fila de pedidos aguardando retirada |
+| `pdv` | `POST /pdv/pedidos-online/<id>/retirar` | confirma retirada (gera venda) |
+
+O carrinho fica em `session["carrinho_feira"]` no servidor Flask — nunca em
+`localStorage`/cookie do navegador — seguindo o mesmo princípio já usado
+para o token JWT do login (ver seção 8).
+
+---
+
+## 10. Correções aplicadas nesta versão
+
+Antes de finalizar a entrega, revisamos o projeto e encontramos os seguintes
+problemas, todos corrigidos e cobertos por teste (quando aplicável):
+
+| # | Problema | Onde | Correção |
+|---|----------|------|----------|
+| 1 | Router `/usuarios` sem nenhuma autenticação — qualquer pessoa não logada podia listar, criar (inclusive um admin), editar e excluir usuários | `api/app/routers/usuarios.py` | Adicionado `Depends(exigir_admin)` em todos os endpoints; `test_api_usuarios.py` cobre o bloqueio |
+| 2 | Formulário de edição de usuário com HTML inválido — a tag `<form>` abria dentro de um `<td>` e "vazava" para fora, então login/perfil/status não eram enviados de verdade ao salvar | `web/app/templates/admin/usuarios.html` | Reescrito com o padrão `form="id"` (mesmo já usado em produtos) |
+| 3 | Tela de usuários não exibia nenhuma mensagem de sucesso/erro (bloco `get_flashed_messages` ausente) | `web/app/templates/admin/usuarios.html` | Bloco de mensagens adicionado, igual às demais páginas |
+| 4 | `pdv/caixa.html` nunca carregava `terminal.css` — a página de abertura/fechamento de caixa ficava sem estilo | `web/app/templates/pdv/caixa.html` | Link do `terminal.css` adicionado |
+| 5 | Nenhuma listagem tinha paginação, apesar de ser requisito funcional mínimo do roteiro | `produtos.py`, `vendas.py`, `caixa.py`, `usuarios.py`, `pedidos_online.py` (routers) | Parâmetros `skip`/`limit` adicionados em todas as listagens |
+| 6 | Excluir um usuário com caixa/venda vinculada estourava um erro de integridade referencial sem tratamento (500) | `api/app/routers/usuarios.py` | `try/except IntegrityError` → `409` com mensagem clara; testado |
+| 7 | Porta do Flask divergente do README (`8080` no código vs. `5000` no texto) | `web/app/main.py` | Unificado em `5000` |
+| 8 | CORS da API liberava só `http://localhost:8000` (a própria API), nunca o Flask de verdade | `api/app/main.py` | Liberado `http://localhost:5000` |
+| 9 | `api/requirements.txt` tinha `flask`, `requests` e `python-dotenv` duplicado — dependências do `web/`, sem uso na API | `api/requirements.txt` | Removidas |
+| 10 | `DOCUMENTACAO_TECNICA.md` afirmava "12 cenários" em `test_api_vendas.py` e "34 no total"; o código real tinha 11 e 33 | Este documento | Números corrigidos (e agora atualizados para 54, com os dois arquivos de teste novos) |
+
+---
+
 ## Dificuldades, decisões técnicas e aprendizados
 - A principal dificuldade foi organizar a comunicação entre a camada web e a API sem expor diretamente a lógica de negócio no front-end.
 - A decisão de centralizar as regras de negócio na API e deixar o Flask como cliente autenticado ajudou na separação de responsabilidades.
 - O uso de transações para vendas e estoque mostrou-se essencial para manter consistência nos processos de negócio.
 - O projeto reforçou conceitos de autenticação, controle de acesso, integração de sistemas e documentação técnica.
+- A revisão final do projeto (seção 10) reforçou uma lição à parte: um
+  endpoint sem teste é um endpoint sem garantia nenhuma — foi exatamente a
+  ausência de testes em `/usuarios` que permitiu a falha de autenticação
+  passar despercebida durante o desenvolvimento.
 
 ## Referências
 - FastAPI Documentation

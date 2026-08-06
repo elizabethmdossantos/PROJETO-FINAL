@@ -1,21 +1,41 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.deps import exigir_admin
 from app.core.security import gerar_hash_senha
 from app.models.usuario import Usuario, PerfilUsuario
 from app.schemas.usuario import UsuarioCreate, UsuarioOut, UsuarioUpdate
 
 router = APIRouter(prefix="/usuarios", tags=["Usuários"])
 
+# Todas as rotas abaixo são restritas ao administrador: é aqui que perfis são
+# concedidos, então nunca podem ficar acessíveis sem autenticação.
+
 
 @router.get("", response_model=list[UsuarioOut])
-def listar_usuarios(db: Session = Depends(get_db)):
-    return db.query(Usuario).order_by(Usuario.id.asc()).all()
+def listar_usuarios(
+    skip: int = 0,
+    limit: int = Query(50, le=200),
+    db: Session = Depends(get_db),
+    _admin: dict = Depends(exigir_admin),
+):
+    return (
+        db.query(Usuario)
+        .order_by(Usuario.id.asc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.post("", response_model=UsuarioOut, status_code=status.HTTP_201_CREATED)
-def criar_usuario(dados: UsuarioCreate, db: Session = Depends(get_db)):
+def criar_usuario(
+    dados: UsuarioCreate,
+    db: Session = Depends(get_db),
+    _admin: dict = Depends(exigir_admin),
+):
     existente = db.query(Usuario).filter(Usuario.login == dados.login).first()
     if existente:
         raise HTTPException(
@@ -37,7 +57,12 @@ def criar_usuario(dados: UsuarioCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{usuario_id}", response_model=UsuarioOut)
-def atualizar_usuario(usuario_id: int, dados: UsuarioUpdate, db: Session = Depends(get_db)):
+def atualizar_usuario(
+    usuario_id: int,
+    dados: UsuarioUpdate,
+    db: Session = Depends(get_db),
+    _admin: dict = Depends(exigir_admin),
+):
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado.")
@@ -69,7 +94,11 @@ def atualizar_usuario(usuario_id: int, dados: UsuarioUpdate, db: Session = Depen
 
 
 @router.delete("/{usuario_id}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_usuario(usuario_id: int, db: Session = Depends(get_db)):
+def excluir_usuario(
+    usuario_id: int,
+    db: Session = Depends(get_db),
+    _admin: dict = Depends(exigir_admin),
+):
     usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado.")
@@ -81,5 +110,15 @@ def excluir_usuario(usuario_id: int, db: Session = Depends(get_db)):
         )
 
     db.delete(usuario)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "Não é possível excluir este usuário: existem caixas ou vendas "
+                "vinculados a ele. Desative-o em vez de excluir."
+            ),
+        )
     return None

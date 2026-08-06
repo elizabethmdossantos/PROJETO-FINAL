@@ -12,4 +12,5 @@ class Produto(Base):
     preco = Column(Numeric(10, 2), nullable=False)
     estoque = Column(Integer, nullable=False, default=0)
     ativo = Column(Boolean, default=True, nullable=False)
+    disponivel_loja = Column(Boolean, default=True, nullable=False)
     criado_em = Column(DateTime, server_default=func.now())

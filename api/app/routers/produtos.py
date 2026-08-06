@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -30,13 +30,20 @@ def criar_produto(
 @router.get("", response_model=list[ProdutoOut])
 def listar_produtos(
     apenas_ativos: bool = True,
+    busca: str = "",
+    skip: int = 0,
+    limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
     _admin: dict = Depends(exigir_admin),
 ):
     consulta = db.query(Produto)
     if apenas_ativos:
         consulta = consulta.filter(Produto.ativo.is_(True))
-    return consulta.order_by(Produto.nome).all()
+    if busca:
+        consulta = consulta.filter(
+            (Produto.nome.ilike(f"%{busca}%")) | (Produto.codigo.ilike(f"%{busca}%"))
+        )
+    return consulta.order_by(Produto.nome).offset(skip).limit(limit).all()
 
 
 @router.get("/codigo/{codigo}", response_model=ProdutoOut)

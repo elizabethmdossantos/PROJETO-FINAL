@@ -12,6 +12,8 @@
     <a class="nav-admin-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
     <a class="nav-admin-link nav-admin-link-ativo" href="{{ url_for('produtos.listar') }}">Produtos</a>
     <a class="nav-admin-link" href="{{ url_for('admin.novo_usuario') }}">Usuários</a>
+    <a class="nav-admin-link" href="{{ url_for('pdv.pedidos_online') }}">Pedidos online</a>
+    <a class="nav-admin-link" href="{{ url_for('loja.catalogo') }}" target="_blank" rel="noopener">Ver loja ↗</a>
   </nav>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
@@ -44,6 +46,13 @@
           <label for="estoque">Estoque inicial</label>
           <input type="number" min="0" id="estoque" name="estoque" required placeholder="0">
         </div>
+        <div class="campo campo-estreito">
+          <label for="disponivel_loja">Vender na loja online</label>
+          <label class="chave">
+            <input type="checkbox" id="disponivel_loja" name="disponivel_loja" checked>
+            <span class="chave-trilho"></span>
+          </label>
+        </div>
       </div>
       <button type="submit" class="botao-entrar botao-cadastrar-produto">Cadastrar produto</button>
     </form>
@@ -63,6 +72,7 @@
           <th>Preço (R$)</th>
           <th>Estoque</th>
           <th>Ativo</th>
+          <th>Na loja online</th>
           <th></th>
         </tr>
       </thead>
@@ -76,6 +86,12 @@
           <td class="celula-ativo">
             <label class="chave chave-pequena">
               <input form="form-produto-{{ produto.id }}" type="checkbox" name="ativo" {% if produto.ativo %}checked{% endif %}>
+              <span class="chave-trilho"></span>
+            </label>
+          </td>
+          <td class="celula-ativo">
+            <label class="chave chave-pequena">
+              <input form="form-produto-{{ produto.id }}" type="checkbox" name="disponivel_loja" {% if produto.disponivel_loja %}checked{% endif %}>
               <span class="chave-trilho"></span>
             </label>
           </td>

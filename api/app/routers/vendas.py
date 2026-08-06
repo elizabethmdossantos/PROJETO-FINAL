@@ -2,7 +2,7 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -136,6 +136,8 @@ def minhas_vendas(
 def listar_vendas(
     data_inicio: Optional[date] = None,
     data_fim: Optional[date] = None,
+    skip: int = 0,
+    limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
     _admin: dict = Depends(exigir_admin),
 ):
@@ -145,7 +147,9 @@ def listar_vendas(
     if data_fim:
         consulta = consulta.filter(Venda.criado_em <= datetime.combine(data_fim, time.max))
 
-    vendas = consulta.order_by(Venda.criado_em.desc()).all()
+    vendas = (
+        consulta.order_by(Venda.criado_em.desc()).offset(skip).limit(limit).all()
+    )
     return [_montar_venda_detalhada(db, venda) for venda in vendas]
 
 

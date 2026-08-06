@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -108,7 +108,15 @@ def fechar_caixa(
 
 @router.get("", response_model=list[CaixaOut])
 def listar_caixas(
+    skip: int = 0,
+    limit: int = Query(50, le=200),
     db: Session = Depends(get_db),
     _admin: dict = Depends(exigir_admin),
 ):
-    return db.query(Caixa).order_by(Caixa.aberto_em.desc()).all()
+    return (
+        db.query(Caixa)
+        .order_by(Caixa.aberto_em.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )

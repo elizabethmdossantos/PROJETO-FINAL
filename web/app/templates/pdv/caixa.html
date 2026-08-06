@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block titulo %}Caixa — {{ "Fechamento" if caixa_aberto else "Abertura" }}{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+{% endblock %}
 {% block conteudo %}
 <div class="pagina-interna pagina-caixa">
   <span class="selo">Perfil: Operador de caixa</span>

@@ -2,7 +2,7 @@ import os
 import sys
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
@@ -24,6 +24,15 @@ engine_teste = create_engine(
     poolclass=StaticPool,
 )
 SessionTeste = sessionmaker(autocommit=False, autoflush=False, bind=engine_teste)
+
+
+# O SQLite não aplica chaves estrangeiras por padrão (o MySQL de produção
+# aplica). Habilitamos aqui para que os testes reflitam o comportamento real.
+@event.listens_for(engine_teste, "connect")
+def _habilitar_fk_sqlite(conexao_dbapi, _record):
+    cursor = conexao_dbapi.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 def _get_db_teste():

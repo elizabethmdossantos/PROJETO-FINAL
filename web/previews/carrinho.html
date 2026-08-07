@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sua feira — Feira Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app/static/css/main.css">
+  
+<link rel="stylesheet" href="../app/static/css/terminal.css">
+<link rel="stylesheet" href="../app/static/css/loja.css">
+
+</head>
+<body>
+  
+<div class="pagina-loja loja-carrinho">
+  <div class="loja-header loja-header-compact">
+    <div>
+      <span class="marca-eyebrow">Feira Online</span>
+      <h1>Minha feira</h1>
+      <p class="loja-marca-descricao">Revise os itens selecionados, ajuste quantidades e confirme o pagamento seguro.</p>
+    </div>
+    <a class="botao-secundario" href="/loja.catalogo">← Continuar escolhendo</a>
+  </div>
+
+  
+    
+  
+
+  
+  <div class="carrinho-conteudo">
+    <div class="cartao-carrinho">
+      <div class="cartao-carrinho-titulo">
+        <h2>Itens na feira</h2>
+        <span>2 produtos</span>
+      </div>
+      <div class="tabela-responsiva">
+        <table class="carrinho-tabela">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Preço</th>
+              <th>Qtd.</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            
+            <tr>
+              <td>Arroz 5kg</td>
+              <td>R$ 25.90</td>
+              <td>
+                <form method="POST" action="/loja.atualizar_item" class="form-atualizar-item">
+                  <input type="number" name="quantidade" min="1" value="1">
+                  <button type="submit" class="botao-secundario botao-atualizar">Atualizar</button>
+                </form>
+              </td>
+              <td>R$ 25.90</td>
+              <td>
+                <form method="POST" action="/loja.remover_item">
+                  <button type="submit" class="botao-remover">Remover</button>
+                </form>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>Feijão 1kg</td>
+              <td>R$ 8.50</td>
+              <td>
+                <form method="POST" action="/loja.atualizar_item" class="form-atualizar-item">
+                  <input type="number" name="quantidade" min="1" value="2">
+                  <button type="submit" class="botao-secundario botao-atualizar">Atualizar</button>
+                </form>
+              </td>
+              <td>R$ 17.00</td>
+              <td>
+                <form method="POST" action="/loja.remover_item">
+                  <button type="submit" class="botao-remover">Remover</button>
+                </form>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside class="cartao-resumo">
+      <h2>Resumo do pedido</h2>
+      <div class="recibo-linha"><span>Subtotal</span><span>R$ 42.90</span></div>
+      <div class="recibo-linha"><span>Taxa de serviço</span><span>R$ 3.43</span></div>
+      <div class="recibo-linha destaque"><span>Total</span><span>R$ 46.33</span></div>
+      <p class="aviso-taxa-servico">
+        A taxa de serviço garante embalagem e separação dos produtos para retirada no balcão.
+      </p>
+      <a class="botao-primario botao-pagar" href="/loja.checkout">
+        Ir para o pagamento
+      </a>
+    </aside>
+  </div>
+  
+</div>
+
+  
+</body>
+</html>

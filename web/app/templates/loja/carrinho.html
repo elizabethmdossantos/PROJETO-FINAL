@@ -5,20 +5,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
 {% endblock %}
 {% block conteudo %}
-<div class="pagina-loja">
-  <div class="loja-header">
+<div class="pagina-loja loja-carrinho">
+  <div class="loja-header loja-header-compact">
     <div>
       <span class="marca-eyebrow">Feira Online</span>
-      <h1 class="loja-marca-titulo">Sua feira</h1>
+      <h1>Minha feira</h1>
+      <p class="loja-marca-descricao">Revise os itens selecionados, ajuste quantidades e confirme o pagamento seguro.</p>
     </div>
-    <div class="loja-acoes">
-      <a class="botao-secundario" href="{{ url_for('loja.catalogo') }}">← Continuar escolhendo produtos</a>
-    </div>
+    <a class="botao-secundario" href="{{ url_for('loja.catalogo') }}">← Continuar escolhendo</a>
   </div>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% if mensagens %}
-      <div class="mensagens">
+      <div class="mensagens mensagens-loja">
         {% for categoria, texto in mensagens %}
           <div class="mensagem-{{ categoria }}">{{ texto }}</div>
         {% endfor %}
@@ -27,52 +26,65 @@
   {% endwith %}
 
   {% if itens %}
-  <table class="carrinho-tabela">
-    <thead>
-      <tr>
-        <th>Produto</th>
-        <th>Preço unit.</th>
-        <th>Qtd.</th>
-        <th>Subtotal</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for item in itens %}
-      <tr>
-        <td>{{ item.nome }}</td>
-        <td>R$ {{ "%.2f"|format(item.preco) }}</td>
-        <td>
-          <form method="POST" action="{{ url_for('loja.atualizar_item', produto_id=item.produto_id) }}" style="display:flex; gap:6px;">
-            <input type="number" name="quantidade" min="1" value="{{ item.quantidade }}">
-            <button type="submit" class="botao-secundario" style="padding: 6px 10px;">Atualizar</button>
-          </form>
-        </td>
-        <td>R$ {{ "%.2f"|format(item.subtotal) }}</td>
-        <td>
-          <form method="POST" action="{{ url_for('loja.remover_item', produto_id=item.produto_id) }}">
-            <button type="submit" class="botao-remover">Remover</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="carrinho-conteudo">
+    <div class="cartao-carrinho">
+      <div class="cartao-carrinho-titulo">
+        <h2>Itens na feira</h2>
+        <span>{{ itens|length }} produtos</span>
+      </div>
+      <div class="tabela-responsiva">
+        <table class="carrinho-tabela">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Preço</th>
+              <th>Qtd.</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in itens %}
+            <tr>
+              <td>{{ item.nome }}</td>
+              <td>R$ {{ "%.2f"|format(item.preco) }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('loja.atualizar_item', produto_id=item.produto_id) }}" class="form-atualizar-item">
+                  <input type="number" name="quantidade" min="1" value="{{ item.quantidade }}">
+                  <button type="submit" class="botao-secundario botao-atualizar">Atualizar</button>
+                </form>
+              </td>
+              <td>R$ {{ "%.2f"|format(item.subtotal) }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('loja.remover_item', produto_id=item.produto_id) }}">
+                  <button type="submit" class="botao-remover">Remover</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <div class="resumo-caixa">
-    <div class="recibo-linha"><span>Subtotal dos produtos</span><span>R$ {{ "%.2f"|format(subtotal) }}</span></div>
-    <div class="recibo-linha"><span>Taxa de serviço (8%)</span><span>R$ {{ "%.2f"|format(taxa_servico) }}</span></div>
-    <div class="recibo-linha destaque"><span>Total a pagar</span><span>R$ {{ "%.2f"|format(total) }}</span></div>
-    <p class="aviso-taxa-servico">
-      A taxa de serviço cobre a montagem da sua feira por um funcionário da
-      loja. Você paga agora e retira tudo pronto no balcão.
-    </p>
-    <a class="botao-entrar" style="display:block; text-align:center; margin-top:16px;" href="{{ url_for('loja.checkout') }}">
-      Ir para o pagamento
-    </a>
+    <aside class="cartao-resumo">
+      <h2>Resumo do pedido</h2>
+      <div class="recibo-linha"><span>Subtotal</span><span>R$ {{ "%.2f"|format(subtotal) }}</span></div>
+      <div class="recibo-linha"><span>Taxa de serviço</span><span>R$ {{ "%.2f"|format(taxa_servico) }}</span></div>
+      <div class="recibo-linha destaque"><span>Total</span><span>R$ {{ "%.2f"|format(total) }}</span></div>
+      <p class="aviso-taxa-servico">
+        A taxa de serviço garante embalagem e separação dos produtos para retirada no balcão.
+      </p>
+      <a class="botao-primario botao-pagar" href="{{ url_for('loja.checkout') }}">
+        Ir para o pagamento
+      </a>
+    </aside>
   </div>
   {% else %}
-  <p class="texto-vazio">Sua feira ainda está vazia. <a href="{{ url_for('loja.catalogo') }}">Ver produtos</a>.</p>
+  <div class="texto-vazio-card">
+    <p>Sua feira ainda está vazia.</p>
+    <a class="botao-primario" href="{{ url_for('loja.catalogo') }}">Ver produtos</a>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

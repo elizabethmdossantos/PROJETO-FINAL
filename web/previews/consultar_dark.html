@@ -1,10 +1,19 @@
-{% extends "base.html" %}
-{% block titulo %}Consultar pedido — Feira Online{% endblock %}
-{% block estilos_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
-{% endblock %}
-{% block conteudo %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultar pedido — Feira Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app/static/css/main.css">
+  
+<link rel="stylesheet" href="../app/static/css/terminal.css">
+<link rel="stylesheet" href="../app/static/css/loja-dark.css">
+
+</head>
+<body class="dark">
+  
 <div class="pagina-loja loja-consultar">
   <section class="consulta-bloco">
     <div class="consulta-titulo">
@@ -13,17 +22,11 @@
       <p>Use o número do pedido e o telefone da compra para verificar o status em segundos.</p>
     </div>
     <div class="cartao-formulario consulta-formulario">
-      {% with mensagens = get_flashed_messages(with_categories=true) %}
-        {% if mensagens %}
-          <div class="mensagens mensagens-loja">
-            {% for categoria, texto in mensagens %}
-              <div class="mensagem-{{ categoria }}">{{ texto }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% endwith %}
+      
+        
+      
 
-      <form method="POST" action="{{ url_for('loja.consultar') }}">
+      <form method="POST" action="/loja.consultar">
         <div class="campo">
           <label for="numero_pedido">Número do pedido</label>
           <input type="text" id="numero_pedido" name="numero_pedido" placeholder="Ex: F260802A1B2C" required autofocus>
@@ -35,8 +38,11 @@
         <button type="submit" class="botao-primario">Consultar pedido</button>
       </form>
 
-      <a class="link-voltar" href="{{ url_for('loja.catalogo') }}">← Voltar para a loja</a>
+      <a class="link-voltar" href="/loja.catalogo">← Voltar para a loja</a>
     </div>
   </section>
 </div>
-{% endblock %}
+
+  
+</body>
+</html>

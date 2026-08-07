@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feira Online — monte sua feira</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app/static/css/main.css">
+  
+<link rel="stylesheet" href="../app/static/css/terminal.css">
+<link rel="stylesheet" href="../app/static/css/loja-dark.css">
+
+</head>
+<body class="dark">
+  
+<div class="pagina-loja loja-catalogo">
+  <section class="loja-hero">
+    <div class="hero-texto">
+      <span class="marca-eyebrow">Feira Online</span>
+      <h1>Monte sua feira com produtos frescos e entrega rápida</h1>
+      <p>Escolha frutas, verduras, grãos e básicos do dia a dia com preços transparentes e valorize seu tempo.</p>
+    </div>
+    <div class="hero-acoes">
+      <a class="botao-secundario" href="/loja.consultar">Consultar pedido</a>
+      <a class="botao-primario botao-carrinho" href="/loja.ver_carrinho">
+        Minha feira
+        <span class="contador-carrinho">3</span>
+      </a>
+    </div>
+  </section>
+
+  
+    
+  
+
+  <form method="GET" action="/loja.catalogo" class="form-busca-loja">
+    <input type="text" name="busca" value="" placeholder="Buscar produto, ex: arroz, leite...">
+    <div class="busca-acoes">
+      <button type="submit" class="botao-primario botao-filtro">Buscar</button>
+      
+    </div>
+  </form>
+
+  
+  <div class="grade-produtos">
+    
+    <article class="cartao-produto">
+      <div class="cartao-produto-topo">
+        <span class="etiqueta-disponibilidade etiqueta-disponivel">
+          Disponível
+          
+        </span>
+        <span class="cartao-produto-codigo">A001</span>
+      </div>
+      <h2 class="cartao-produto-nome">Arroz 5kg</h2>
+      <div class="cartao-produto-preco">R$ 25.90</div>
+      <form method="POST" action="/loja.adicionar_ao_carrinho" class="form-adicionar-carrinho">
+        <input type="hidden" name="produto_id" value="1">
+        <input type="number" name="quantidade" min="1" value="1" >
+        <button type="submit" class="botao-adicionar" >
+          Adicionar
+        </button>
+      </form>
+    </article>
+    
+    <article class="cartao-produto">
+      <div class="cartao-produto-topo">
+        <span class="etiqueta-disponibilidade etiqueta-poucas_unidades">
+          Últimas unidades
+          
+        </span>
+        <span class="cartao-produto-codigo">B002</span>
+      </div>
+      <h2 class="cartao-produto-nome">Feijão 1kg</h2>
+      <div class="cartao-produto-preco">R$ 8.50</div>
+      <form method="POST" action="/loja.adicionar_ao_carrinho" class="form-adicionar-carrinho">
+        <input type="hidden" name="produto_id" value="2">
+        <input type="number" name="quantidade" min="1" value="1" >
+        <button type="submit" class="botao-adicionar" >
+          Adicionar
+        </button>
+      </form>
+    </article>
+    
+    <article class="cartao-produto">
+      <div class="cartao-produto-topo">
+        <span class="etiqueta-disponibilidade etiqueta-indisponivel">
+          Indisponível
+        </span>
+        <span class="cartao-produto-codigo">C003</span>
+      </div>
+      <h2 class="cartao-produto-nome">Leite 1L</h2>
+      <div class="cartao-produto-preco">R$ 4.75</div>
+      <form method="POST" action="/loja.adicionar_ao_carrinho" class="form-adicionar-carrinho">
+        <input type="hidden" name="produto_id" value="3">
+        <input type="number" name="quantidade" min="1" value="1" disabled>
+        <button type="submit" class="botao-adicionar" disabled>
+          Adicionar
+        </button>
+      </form>
+    </article>
+    
+  </div>
+  
+</div>
+
+  
+</body>
+</html>

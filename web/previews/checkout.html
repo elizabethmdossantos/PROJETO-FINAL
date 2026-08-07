@@ -1,10 +1,19 @@
-{% extends "base.html" %}
-{% block titulo %}Finalizar pedido — Feira Online{% endblock %}
-{% block estilos_extra %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
-{% endblock %}
-{% block conteudo %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finalizar pedido — Feira Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app/static/css/main.css">
+  
+<link rel="stylesheet" href="../app/static/css/terminal.css">
+<link rel="stylesheet" href="../app/static/css/loja.css">
+
+</head>
+<body>
+  
 <div class="pagina-loja loja-checkout">
   <div class="loja-header loja-header-compact">
     <div>
@@ -12,18 +21,12 @@
       <h1>Finalizar pedido</h1>
       <p class="loja-marca-descricao">Verifique seu carrinho e preencha os dados para emitir o comprovante.</p>
     </div>
-    <a class="botao-secundario" href="{{ url_for('loja.ver_carrinho') }}">← Voltar para a feira</a>
+    <a class="botao-secundario" href="/loja.ver_carrinho">← Voltar para a feira</a>
   </div>
 
-  {% with mensagens = get_flashed_messages(with_categories=true) %}
-    {% if mensagens %}
-      <div class="mensagens mensagens-loja">
-        {% for categoria, texto in mensagens %}
-          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+  
+    
+  
 
   <div class="checkout-grid">
     <section class="cartao-resumo checkout-resumo">
@@ -34,24 +37,30 @@
             <tr><th>Produto</th><th>Qtd.</th><th>Subtotal</th></tr>
           </thead>
           <tbody>
-            {% for item in itens %}
+            
             <tr>
-              <td>{{ item.nome }}</td>
-              <td>{{ item.quantidade }}</td>
-              <td>R$ {{ "%.2f"|format(item.subtotal) }}</td>
+              <td>Arroz 5kg</td>
+              <td>1</td>
+              <td>R$ 25.90</td>
             </tr>
-            {% endfor %}
+            
+            <tr>
+              <td>Feijão 1kg</td>
+              <td>2</td>
+              <td>R$ 17.00</td>
+            </tr>
+            
           </tbody>
         </table>
       </div>
-      <div class="recibo-linha"><span>Subtotal dos produtos</span><span>R$ {{ "%.2f"|format(subtotal) }}</span></div>
-      <div class="recibo-linha"><span>Taxa de serviço (8%)</span><span>R$ {{ "%.2f"|format(taxa_servico) }}</span></div>
-      <div class="recibo-linha destaque"><span>Total a pagar agora</span><span>R$ {{ "%.2f"|format(total) }}</span></div>
+      <div class="recibo-linha"><span>Subtotal dos produtos</span><span>R$ 42.90</span></div>
+      <div class="recibo-linha"><span>Taxa de serviço (8%)</span><span>R$ 3.43</span></div>
+      <div class="recibo-linha destaque"><span>Total a pagar agora</span><span>R$ 46.33</span></div>
     </section>
 
     <section class="cartao-formulario">
       <h2>Dados do cliente</h2>
-      <form method="POST" action="{{ url_for('loja.checkout') }}">
+      <form method="POST" action="/loja.checkout">
         <div class="campo">
           <label for="nome_cliente">Seu nome</label>
           <input type="text" id="nome_cliente" name="nome_cliente" required autofocus>
@@ -62,7 +71,7 @@
           <p class="texto-ajuda">Este telefone será usado para consultar ou cancelar o pedido.</p>
         </div>
         <button type="submit" class="botao-primario botao-pagar">
-          Confirmar e pagar R$ {{ "%.2f"|format(total) }}
+          Confirmar e pagar R$ 46.33
         </button>
         <p class="aviso-taxa-servico">
           Pagamento simulado neste projeto acadêmico. Ao confirmar, o pedido será registrado como pago e um funcionário montará sua feira.
@@ -74,4 +83,7 @@
     </section>
   </div>
 </div>
-{% endblock %}
+
+  
+</body>
+</html>

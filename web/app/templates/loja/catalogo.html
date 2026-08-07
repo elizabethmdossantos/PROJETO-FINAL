@@ -5,29 +5,25 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
 {% endblock %}
 {% block conteudo %}
-<div class="pagina-loja">
-  <div class="loja-header">
-    <div>
+<div class="pagina-loja loja-catalogo">
+  <section class="loja-hero">
+    <div class="hero-texto">
       <span class="marca-eyebrow">Feira Online</span>
-      <h1 class="loja-marca-titulo">Monte sua feira, a gente separa pra você</h1>
-      <p class="loja-marca-descricao">
-        Escolha os produtos, pague pelo site com uma taxa de serviço de 8% e
-        retire tudo pronto no balcão — ou acompanhe aqui mesmo quanto vai
-        gastar antes de decidir.
-      </p>
+      <h1>Monte sua feira com produtos frescos e entrega rápida</h1>
+      <p>Escolha frutas, verduras, grãos e básicos do dia a dia com preços transparentes e valorize seu tempo.</p>
     </div>
-    <div class="loja-acoes">
+    <div class="hero-acoes">
       <a class="botao-secundario" href="{{ url_for('loja.consultar') }}">Consultar pedido</a>
-      <a class="botao-secundario botao-carrinho" href="{{ url_for('loja.ver_carrinho') }}">
+      <a class="botao-primario botao-carrinho" href="{{ url_for('loja.ver_carrinho') }}">
         Minha feira
         {% if quantidade_no_carrinho %}<span class="contador-carrinho">{{ quantidade_no_carrinho }}</span>{% endif %}
       </a>
     </div>
-  </div>
+  </section>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% if mensagens %}
-      <div class="mensagens">
+      <div class="mensagens mensagens-loja">
         {% for categoria, texto in mensagens %}
           <div class="mensagem-{{ categoria }}">{{ texto }}</div>
         {% endfor %}
@@ -37,23 +33,27 @@
 
   <form method="GET" action="{{ url_for('loja.catalogo') }}" class="form-busca-loja">
     <input type="text" name="busca" value="{{ busca }}" placeholder="Buscar produto, ex: arroz, leite...">
-    <button type="submit" class="botao-entrar botao-filtro" style="width: auto;">Buscar</button>
-    {% if busca %}
-      <a class="link-limpar-filtro" href="{{ url_for('loja.catalogo') }}">Limpar</a>
-    {% endif %}
+    <div class="busca-acoes">
+      <button type="submit" class="botao-primario botao-filtro">Buscar</button>
+      {% if busca %}
+        <a class="link-limpar-filtro" href="{{ url_for('loja.catalogo') }}">Limpar</a>
+      {% endif %}
+    </div>
   </form>
 
   {% if produtos %}
   <div class="grade-produtos">
     {% for produto in produtos %}
-    <div class="cartao-produto">
-      <span class="etiqueta-disponibilidade etiqueta-{{ produto.disponibilidade }}">
-        {% if produto.disponibilidade == "disponivel" %}Disponível
-        {% elif produto.disponibilidade == "poucas_unidades" %}Últimas unidades
-        {% else %}Indisponível{% endif %}
-      </span>
-      <div class="cartao-produto-codigo">{{ produto.codigo }}</div>
-      <div class="cartao-produto-nome">{{ produto.nome }}</div>
+    <article class="cartao-produto">
+      <div class="cartao-produto-topo">
+        <span class="etiqueta-disponibilidade etiqueta-{{ produto.disponibilidade }}">
+          {% if produto.disponibilidade == "disponivel" %}Disponível
+          {% elif produto.disponibilidade == "poucas_unidades" %}Últimas unidades
+          {% else %}Indisponível{% endif %}
+        </span>
+        <span class="cartao-produto-codigo">{{ produto.codigo }}</span>
+      </div>
+      <h2 class="cartao-produto-nome">{{ produto.nome }}</h2>
       <div class="cartao-produto-preco">R$ {{ "%.2f"|format(produto.preco|float) }}</div>
       <form method="POST" action="{{ url_for('loja.adicionar_ao_carrinho') }}" class="form-adicionar-carrinho">
         <input type="hidden" name="produto_id" value="{{ produto.id }}">
@@ -62,11 +62,14 @@
           Adicionar
         </button>
       </form>
-    </div>
+    </article>
     {% endfor %}
   </div>
   {% else %}
-  <p class="texto-vazio">Nenhum produto encontrado{% if busca %} para "{{ busca }}"{% endif %}.</p>
+  <div class="texto-vazio-card">
+    <p>Nenhum produto encontrado{% if busca %} para "{{ busca }}"{% endif %}.</p>
+    <a class="botao-secundario" href="{{ url_for('loja.catalogo') }}">Voltar ao catálogo</a>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

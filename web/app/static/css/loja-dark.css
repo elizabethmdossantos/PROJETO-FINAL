@@ -1,0 +1,37 @@
+/* Dark mode overrides for Loja */
+:root {
+  --loja-bg: #0f1416;
+  --loja-surface: #0f1a1a;
+  --loja-border: rgba(255,255,255,0.04);
+  --loja-text: #e6f7f2;
+  --loja-muted: #9bd3c6;
+  --loja-accent: #16c98a;
+  --loja-accent-strong: #07a76f;
+  --loja-danger: #ff8b86;
+  --loja-shadow: rgba(0,0,0,0.6);
+  --loja-soft-shadow: rgba(0,0,0,0.45);
+  --loja-border-weak: rgba(255,255,255,0.03);
+  --loja-code: #8fc6be;
+  --loja-radius: 12px;
+  --loja-gap: 18px;
+}
+
+body.dark { background: var(--loja-bg); color: var(--loja-text); }
+
+.pagina-loja { background: transparent; border: 1px solid var(--loja-border); box-shadow: 0 8px 30px var(--loja-shadow); }
+.loja-hero { background: linear-gradient(180deg,#081914,#0b2320); border:1px solid var(--loja-border); box-shadow:0 8px 24px var(--loja-soft-shadow); }
+.cartao-produto, .cartao-carrinho, .cartao-resumo, .cartao-formulario { background: #0c1615; border:1px solid var(--loja-border); box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+.cartao-produto-nome, .comprovante-numero { color: var(--loja-text); }
+.cartao-produto-preco { color: var(--loja-accent-strong); }
+.botao-secundario { background: transparent; color: var(--loja-text); border:1px solid var(--loja-border); }
+.botao-primario, .botao-pagar { background: var(--loja-accent); box-shadow:0 10px 28px rgba(16,120,90,0.18); }
+.texto-vazio-card { background: transparent; border:1px dashed var(--loja-border); }
+
+/* Improve contrast for labels */
+.etiqueta-disponibilidade { background: rgba(255,255,255,0.02); border-color: var(--loja-border); }
+
+@media (max-width:720px) {
+  .pagina-loja { padding: 18px; }
+}
+
+/* end dark */

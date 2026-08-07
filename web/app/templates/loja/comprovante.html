@@ -5,20 +5,19 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
 {% endblock %}
 {% block conteudo %}
-<div class="pagina-loja">
-  <div class="loja-header">
+<div class="pagina-loja loja-comprovante">
+  <div class="loja-header loja-header-compact">
     <div>
       <span class="marca-eyebrow">Feira Online — comprovante</span>
-      <h1 class="loja-marca-titulo">Olá, {{ pedido.nome_cliente }}!</h1>
+      <h1>Olá, {{ pedido.nome_cliente }}!</h1>
+      <p class="loja-marca-descricao">Use o código abaixo para retirar sua feira no balcão da loja.</p>
     </div>
-    <div class="loja-acoes">
-      <a class="botao-secundario" href="{{ url_for('loja.catalogo') }}">Fazer novo pedido</a>
-    </div>
+    <a class="botao-secundario" href="{{ url_for('loja.catalogo') }}">Fazer novo pedido</a>
   </div>
 
   {% with mensagens = get_flashed_messages(with_categories=true) %}
     {% if mensagens %}
-      <div class="mensagens">
+      <div class="mensagens mensagens-loja">
         {% for categoria, texto in mensagens %}
           <div class="mensagem-{{ categoria }}">{{ texto }}</div>
         {% endfor %}
@@ -26,61 +25,64 @@
     {% endif %}
   {% endwith %}
 
-  <p>Apresente este número no balcão da loja para retirar sua feira:</p>
-  <div class="comprovante-numero">{{ pedido.numero_pedido }}</div>
-
-  <p>
-    Status:
-    <span class="etiqueta-status etiqueta-pedido-{{ pedido.status }}">
-      {% if pedido.status == "aguardando_retirada" %}Aguardando retirada
-      {% elif pedido.status == "retirado" %}Retirado
-      {% else %}Cancelado{% endif %}
-    </span>
-  </p>
-
-  <table class="carrinho-tabela">
-    <thead>
-      <tr><th>Produto</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
-    </thead>
-    <tbody>
-      {% for item in pedido.itens %}
-      <tr>
-        <td>{{ item.nome_produto }}</td>
-        <td>{{ item.quantidade }}</td>
-        <td>R$ {{ "%.2f"|format(item.preco_unitario|float) }}</td>
-        <td>R$ {{ "%.2f"|format(item.subtotal|float) }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="resumo-caixa">
-    <div class="recibo-linha"><span>Subtotal dos produtos</span><span>R$ {{ "%.2f"|format(pedido.subtotal|float) }}</span></div>
-    <div class="recibo-linha"><span>Taxa de serviço ({{ pedido.taxa_servico_percentual|float|round|int }}%)</span><span>R$ {{ "%.2f"|format(pedido.taxa_servico_valor|float) }}</span></div>
-    <div class="recibo-linha destaque"><span>Total pago</span><span>R$ {{ "%.2f"|format(pedido.valor_total|float) }}</span></div>
+  <div class="comprovante-capa">
+    <div class="comprovante-numero">{{ pedido.numero_pedido }}</div>
+    <div class="status-bloco">
+      <span>Status</span>
+      <span class="etiqueta-status etiqueta-pedido-{{ pedido.status }}">
+        {% if pedido.status == "aguardando_retirada" %}Aguardando retirada
+        {% elif pedido.status == "retirado" %}Retirado
+        {% else %}Cancelado{% endif %}
+      </span>
+    </div>
   </div>
 
-  {% if pedido.status == "aguardando_retirada" %}
-  <form method="POST" action="{{ url_for('loja.cancelar', numero_pedido=pedido.numero_pedido) }}"
-        onsubmit="return confirm('Cancelar este pedido? Será cobrada uma taxa de 15% sobre o valor total (R$ {{ "%.2f"|format(pedido.valor_total|float) }}).');"
-        style="margin-top: 24px;">
-    <input type="hidden" name="telefone" value="{{ telefone }}">
-    <button type="submit" class="botao-remover">Cancelar pedido</button>
-  </form>
-  {% endif %}
+  <div class="comprovante-layout">
+    <section class="cartao-resumo comprovante-resumo">
+      <h2>Valores do pedido</h2>
+      <div class="recibo-linha"><span>Subtotal</span><span>R$ {{ "%.2f"|format(pedido.subtotal|float) }}</span></div>
+      <div class="recibo-linha"><span>Taxa de serviço</span><span>R$ {{ "%.2f"|format(pedido.taxa_servico_valor|float) }}</span></div>
+      <div class="recibo-linha destaque"><span>Total pago</span><span>R$ {{ "%.2f"|format(pedido.valor_total|float) }}</span></div>
+      {% if pedido.status == "cancelado" %}
+      <div class="aviso-cancelamento comprovante-aviso">
+        Pedido cancelado{% if pedido.cancelado_em %} em {{ pedido.cancelado_em[:16].replace("T", " ") }}{% endif %}.<br>
+        Taxa de cancelamento ({{ pedido.taxa_cancelamento_percentual|float|round|int }}%): R$ {{ "%.2f"|format(pedido.taxa_cancelamento_valor|float) }}<br>
+        <strong>Valor reembolsado: R$ {{ "%.2f"|format(pedido.valor_reembolsado|float) }}</strong>
+      </div>
+      {% endif %}
+    </section>
 
-  {% if pedido.status == "cancelado" %}
-  <div class="aviso-cancelamento">
-    Pedido cancelado{% if pedido.cancelado_em %} em {{ pedido.cancelado_em[:16].replace("T", " ") }}{% endif %}.<br>
-    Taxa de cancelamento ({{ pedido.taxa_cancelamento_percentual|float|round|int }}%): R$ {{ "%.2f"|format(pedido.taxa_cancelamento_valor|float) }}<br>
-    <strong>Valor a ser devolvido: R$ {{ "%.2f"|format(pedido.valor_reembolsado|float) }}</strong>
+    <section class="cartao-carrinho comprovante-itens">
+      <h2>Itens do pedido</h2>
+      <table class="carrinho-tabela">
+        <thead>
+          <tr><th>Produto</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          {% for item in pedido.itens %}
+          <tr>
+            <td>{{ item.nome_produto }}</td>
+            <td>{{ item.quantidade }}</td>
+            <td>R$ {{ "%.2f"|format(item.preco_unitario|float) }}</td>
+            <td>R$ {{ "%.2f"|format(item.subtotal|float) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if pedido.status == "aguardando_retirada" %}
+      <form method="POST" action="{{ url_for('loja.cancelar', numero_pedido=pedido.numero_pedido) }}"
+            onsubmit="return confirm('Cancelar este pedido? Será cobrada uma taxa de 15% sobre o valor total (R$ {{ "%.2f"|format(pedido.valor_total|float) }}).');"
+            class="form-cancelar-pedido">
+        <input type="hidden" name="telefone" value="{{ telefone }}">
+        <button type="submit" class="botao-remover">Cancelar pedido</button>
+      </form>
+      {% endif %}
+      {% if pedido.status == "retirado" %}
+      <div class="texto-vazio-card">
+        <p>Feira retirada{% if pedido.retirado_em %} em {{ pedido.retirado_em[:16].replace("T", " ") }}{% endif %}. Obrigado pela preferência!</p>
+      </div>
+      {% endif %}
+    </section>
   </div>
-  {% endif %}
-
-  {% if pedido.status == "retirado" %}
-  <p class="texto-vazio">
-    Feira retirada{% if pedido.retirado_em %} em {{ pedido.retirado_em[:16].replace("T", " ") }}{% endif %}. Obrigado pela preferência!
-  </p>
-  {% endif %}
 </div>
 {% endblock %}

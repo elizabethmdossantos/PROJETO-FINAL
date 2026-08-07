@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedido F260802A1B2C — Feira Online</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../app/static/css/main.css">
+  
+<link rel="stylesheet" href="../app/static/css/terminal.css">
+<link rel="stylesheet" href="../app/static/css/loja-dark.css">
+
+</head>
+<body class="dark">
+  
+<div class="pagina-loja loja-comprovante">
+  <div class="loja-header loja-header-compact">
+    <div>
+      <span class="marca-eyebrow">Feira Online — comprovante</span>
+      <h1>Olá, Maria Silva!</h1>
+      <p class="loja-marca-descricao">Use o código abaixo para retirar sua feira no balcão da loja.</p>
+    </div>
+    <a class="botao-secundario" href="/loja.catalogo">Fazer novo pedido</a>
+  </div>
+
+  
+    
+  
+
+  <div class="comprovante-capa">
+    <div class="comprovante-numero">F260802A1B2C</div>
+    <div class="status-bloco">
+      <span>Status</span>
+      <span class="etiqueta-status etiqueta-pedido-aguardando_retirada">
+        Aguardando retirada
+        
+      </span>
+    </div>
+  </div>
+
+  <div class="comprovante-layout">
+    <section class="cartao-resumo comprovante-resumo">
+      <h2>Valores do pedido</h2>
+      <div class="recibo-linha"><span>Subtotal</span><span>R$ 42.90</span></div>
+      <div class="recibo-linha"><span>Taxa de serviço</span><span>R$ 3.43</span></div>
+      <div class="recibo-linha destaque"><span>Total pago</span><span>R$ 46.33</span></div>
+      
+    </section>
+
+    <section class="cartao-carrinho comprovante-itens">
+      <h2>Itens do pedido</h2>
+      <table class="carrinho-tabela">
+        <thead>
+          <tr><th>Produto</th><th>Qtd.</th><th>Preço unit.</th><th>Subtotal</th></tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td>Arroz 5kg</td>
+            <td>1</td>
+            <td>R$ 25.90</td>
+            <td>R$ 25.90</td>
+          </tr>
+          
+          <tr>
+            <td>Feijão 1kg</td>
+            <td>2</td>
+            <td>R$ 8.50</td>
+            <td>R$ 17.00</td>
+          </tr>
+          
+        </tbody>
+      </table>
+      
+      <form method="POST" action="/loja.cancelar"
+            onsubmit="return confirm('Cancelar este pedido? Será cobrada uma taxa de 15% sobre o valor total (R$ 46.33).');"
+            class="form-cancelar-pedido">
+        <input type="hidden" name="telefone" value="82999990000">
+        <button type="submit" class="botao-remover">Cancelar pedido</button>
+      </form>
+      
+      
+    </section>
+  </div>
+</div>
+
+  
+</body>
+</html>

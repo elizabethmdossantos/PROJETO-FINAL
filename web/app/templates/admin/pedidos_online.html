@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block titulo %}Pedidos online — Painel do Administrador{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/loja.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-interna pagina-admin">
+  <span class="selo selo-admin">Perfil: Administrador</span>
+  <h1>Pedidos online — {{ usuario }}</h1>
+
+  <nav class="nav-admin">
+    <a class="nav-admin-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a class="nav-admin-link" href="{{ url_for('produtos.listar') }}">Produtos</a>
+    <a class="nav-admin-link" href="{{ url_for('admin.novo_usuario') }}">Usuários</a>
+    <a class="nav-admin-link nav-admin-link-ativo" href="{{ url_for('admin.pedidos_online') }}">Pedidos online</a>
+    <a class="nav-admin-link" href="{{ url_for('loja.catalogo') }}" target="_blank" rel="noopener">Ver loja ↗</a>
+  </nav>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <section class="secao-admin">
+    <h2>Histórico completo ({{ total_pedidos }} pedido{{ 's' if total_pedidos != 1 else '' }})</h2>
+    <p class="texto-ajuda">
+      Todos os pedidos já feitos na loja online, agrupados por data — não é
+      necessário abrir caixa para consultar este histórico.
+    </p>
+
+    {% if grupos_por_data %}
+      {% for data, pedidos_do_dia in grupos_por_data.items() %}
+      <div class="grupo-data-pedidos">
+        <h3 class="titulo-grupo-data">{{ data }}</h3>
+        <div class="lista-fila-pedidos">
+          {% for pedido in pedidos_do_dia %}
+          <div class="cartao-pedido">
+            <div class="cartao-pedido-numero">
+              #{{ pedido.numero_pedido }}
+              <span class="etiqueta-status etiqueta-{{ pedido.status }}">{{ pedido.status.replace('_', ' ') }}</span>
+              <span class="etiqueta-pagamento etiqueta-{{ pedido.forma_pagamento }}">{{ pedido.forma_pagamento }}</span>
+            </div>
+            <p>{{ pedido.nome_cliente }} · {{ pedido.telefone_cliente }}</p>
+            <ul class="cartao-pedido-itens">
+              {% for item in pedido.itens %}
+              <li>{{ item.quantidade }}x {{ item.nome_produto }}</li>
+              {% endfor %}
+            </ul>
+            <p class="cartao-pedido-total">Total: R$ {{ "%.2f"|format(pedido.valor_total|float) }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="texto-vazio">Nenhum pedido online realizado ainda.</p>
+    {% endif %}
+  </section>
+
+  <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+</div>
+{% endblock %}

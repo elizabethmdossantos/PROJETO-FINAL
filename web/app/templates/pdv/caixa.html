@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block titulo %}Caixa — {{ "Fechamento" if caixa_aberto else "Abertura" }}{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-interna pagina-caixa">
+  <span class="selo">Perfil: Operador de caixa</span>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if resumo %}
+    <h1>Caixa #{{ resumo.id }} fechado.</h1>
+    <div class="recibo recibo-resumo">
+      <div class="recibo-linha"><span>Operador</span><span>{{ usuario }}</span></div>
+      <div class="recibo-linha"><span>Abertura</span><span>R$ {{ "%.2f"|format(resumo.valor_abertura|float) }}</span></div>
+      <hr>
+      <div class="recibo-linha"><span>Qtd. de vendas</span><span>{{ resumo.quantidade_vendas }}</span></div>
+      <div class="recibo-linha"><span>Total Dinheiro</span><span>R$ {{ "%.2f"|format(resumo.total_dinheiro|float) }}</span></div>
+      <div class="recibo-linha"><span>Total Pix</span><span>R$ {{ "%.2f"|format(resumo.total_pix|float) }}</span></div>
+      <div class="recibo-linha"><span>Total Cartão</span><span>R$ {{ "%.2f"|format(resumo.total_cartao|float) }}</span></div>
+      <div class="recibo-linha"><span>Total Vale-refeição</span><span>R$ {{ "%.2f"|format(resumo.total_vale_refeicao|float) }}</span></div>
+      <hr>
+      <div class="recibo-linha recibo-total"><span>Total vendido</span><span>R$ {{ "%.2f"|format(resumo.total_vendas|float) }}</span></div>
+      <div class="recibo-linha"><span>Contado no fechamento</span><span>R$ {{ "%.2f"|format(resumo.valor_fechamento|float) }}</span></div>
+    </div>
+    <a class="botao-entrar botao-link" href="{{ url_for('pdv.caixa') }}">Abrir um novo caixa</a>
+    <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+
+  {% elif caixa_aberto %}
+    <h1>Caixa #{{ caixa_aberto.id }} aberto para {{ usuario }}.</h1>
+    <p>Aberto com fundo de troco de R$ {{ "%.2f"|format(caixa_aberto.valor_abertura|float) }}.</p>
+
+    <a class="botao-entrar botao-link" href="{{ url_for('pdv.terminal') }}">Ir para o terminal de venda</a>
+
+    <form method="POST" action="{{ url_for('pdv.fechar_caixa') }}" class="form-caixa">
+      <h2 class="subtitulo-form">Fechar caixa</h2>
+      <div class="campo">
+        <label for="valor_fechamento">Valor contado no fechamento (R$)</label>
+        <input type="text" inputmode="decimal" id="valor_fechamento" name="valor_fechamento" placeholder="0,00" required>
+      </div>
+      <div class="campo">
+        <label for="observacoes_fechar">Observações (opcional)</label>
+        <input type="text" id="observacoes_fechar" name="observacoes" placeholder="Ex: diferença de troco justificada">
+      </div>
+      <button type="submit" class="botao-entrar botao-perigo">Fechar caixa</button>
+    </form>
+
+    <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+
+  {% else %}
+    <h1>Abrir caixa — {{ usuario }}</h1>
+    <p>Antes de vender, informe o fundo de troco com que está abrindo o turno.</p>
+
+    <form method="POST" action="{{ url_for('pdv.abrir_caixa') }}" class="form-caixa">
+      <div class="campo">
+        <label for="valor_abertura">Fundo de troco (R$)</label>
+        <input type="text" inputmode="decimal" id="valor_abertura" name="valor_abertura" placeholder="0,00" required autofocus>
+      </div>
+      <div class="campo">
+        <label for="observacoes_abrir">Observações (opcional)</label>
+        <input type="text" id="observacoes_abrir" name="observacoes" placeholder="Ex: turno da manhã">
+      </div>
+      <button type="submit" class="botao-entrar">Abrir caixa</button>
+    </form>
+
+    <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+  {% endif %}
+</div>
+{% endblock %}

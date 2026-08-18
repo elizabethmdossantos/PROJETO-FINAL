@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block titulo %}Produtos — Painel do Administrador{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="pagina-interna pagina-admin">
+  <span class="selo selo-admin">Perfil: Administrador</span>
+  <h1>Produtos — {{ usuario }}</h1>
+
+  <nav class="nav-admin">
+    <a class="nav-admin-link" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a class="nav-admin-link nav-admin-link-ativo" href="{{ url_for('produtos.listar') }}">Produtos</a>
+    <a class="nav-admin-link" href="{{ url_for('admin.novo_usuario') }}">Usuários</a>
+    <a class="nav-admin-link" href="{{ url_for('admin.pedidos_online') }}">Pedidos online</a>
+    <a class="nav-admin-link" href="{{ url_for('loja.catalogo') }}" target="_blank" rel="noopener">Ver loja ↗</a>
+  </nav>
+
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      <div class="mensagens">
+        {% for categoria, texto in mensagens %}
+          <div class="mensagem-{{ categoria }}">{{ texto }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <section class="secao-admin">
+    <h2>Cadastrar novo produto</h2>
+    <form method="POST" action="{{ url_for('produtos.criar') }}" class="form-produto">
+      <div class="linha-produto">
+        <div class="campo">
+          <label for="codigo">Código</label>
+          <input type="text" id="codigo" name="codigo" required placeholder="ex: 7891000100103">
+        </div>
+        <div class="campo">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" required placeholder="ex: Refrigerante Lata 350ml">
+        </div>
+        <div class="campo campo-estreito">
+          <label for="preco">Preço (R$)</label>
+          <input type="text" inputmode="decimal" id="preco" name="preco" required placeholder="0.00">
+        </div>
+        <div class="campo campo-estreito">
+          <label for="estoque">Estoque inicial</label>
+          <input type="number" min="0" id="estoque" name="estoque" required placeholder="0">
+        </div>
+        <div class="campo campo-estreito">
+          <label for="disponivel_loja">Vender na loja online</label>
+          <label class="chave">
+            <input type="checkbox" id="disponivel_loja" name="disponivel_loja" checked>
+            <span class="chave-trilho"></span>
+          </label>
+        </div>
+      </div>
+      <button type="submit" class="botao-entrar botao-cadastrar-produto">Cadastrar produto</button>
+    </form>
+  </section>
+
+  <section class="secao-admin">
+    <h2>Estoque cadastrado</h2>
+    {% if produtos %}
+    {% for produto in produtos %}
+    <form id="form-produto-{{ produto.id }}" method="POST" action="{{ url_for('produtos.editar', produto_id=produto.id) }}"></form>
+    {% endfor %}
+    <table class="tabela-admin">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nome</th>
+          <th>Preço (R$)</th>
+          <th>Estoque</th>
+          <th>Ativo</th>
+          <th>Na loja online</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produto in produtos %}
+        <tr class="{{ 'linha-alerta' if produto.estoque <= 5 else '' }}">
+          <td><span class="codigo-mono">{{ produto.codigo }}</span></td>
+          <td><input form="form-produto-{{ produto.id }}" type="text" name="nome" value="{{ produto.nome }}" required></td>
+          <td><input form="form-produto-{{ produto.id }}" type="text" inputmode="decimal" name="preco" value="{{ produto.preco }}" required></td>
+          <td><input form="form-produto-{{ produto.id }}" type="number" min="0" name="estoque" value="{{ produto.estoque }}" required></td>
+          <td class="celula-ativo">
+            <label class="chave chave-pequena">
+              <input form="form-produto-{{ produto.id }}" type="checkbox" name="ativo" {% if produto.ativo %}checked{% endif %}>
+              <span class="chave-trilho"></span>
+            </label>
+          </td>
+          <td class="celula-ativo">
+            <label class="chave chave-pequena">
+              <input form="form-produto-{{ produto.id }}" type="checkbox" name="disponivel_loja" {% if produto.disponivel_loja %}checked{% endif %}>
+              <span class="chave-trilho"></span>
+            </label>
+          </td>
+          <td><button form="form-produto-{{ produto.id }}" type="submit" class="botao-salvar-produto">Salvar</button></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="texto-vazio">Nenhum produto cadastrado ainda. Use o formulário acima.</p>
+    {% endif %}
+  </section>
+
+  <a class="sair" href="{{ url_for('auth.logout') }}">Encerrar sessão</a>
+</div>
+{% endblock %}

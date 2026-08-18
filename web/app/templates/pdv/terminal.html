@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block titulo %}Terminal de Caixa{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
+{% endblock %}
+{% block conteudo %}
+<div class="terminal">
+  <header class="terminal-header">
+    <div>
+      <span class="selo">Caixa #{{ caixa_aberto.id }} · {{ usuario }}</span>
+      <h1>Terminal de venda</h1>
+    </div>
+    <a class="link-fechar" href="{{ url_for('pdv.caixa') }}">Ir para fechamento de caixa</a>
+  </header>
+
+  <div class="terminal-corpo terminal-corpo-com-menu">
+    <aside class="terminal-menu-produtos">
+      <label for="busca-produto-menu">Produtos cadastrados</label>
+      <input
+        type="text"
+        id="busca-produto-menu"
+        placeholder="Buscar por nome ou código..."
+        autocomplete="off"
+      >
+      <div id="lista-menu-produtos" class="lista-menu-produtos">
+        {% for produto in produtos %}
+        <button
+          type="button"
+          class="item-menu-produto"
+          data-codigo="{{ produto.codigo }}"
+          data-nome="{{ produto.nome }}"
+          data-preco="{{ produto.preco }}"
+          data-busca="{{ (produto.nome ~ ' ' ~ produto.codigo)|lower }}"
+        >
+          <span class="item-menu-produto-nome">{{ produto.nome }}</span>
+          <span class="item-menu-produto-codigo">{{ produto.codigo }}</span>
+          <span class="item-menu-produto-preco">R$ {{ "%.2f"|format(produto.preco|float) }}</span>
+        </button>
+        {% else %}
+        <p class="texto-vazio">Nenhum produto cadastrado ainda.</p>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <section class="terminal-scanner">
+      <label for="codigo-produto">Código do produto</label>
+      <input
+        type="text"
+        id="codigo-produto"
+        placeholder="Digite ou bipe o código e pressione Enter"
+        autofocus
+        autocomplete="off"
+      >
+      <div id="mensagem-scanner" class="mensagem-scanner"></div>
+
+      <table class="tabela-carrinho">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Produto</th>
+            <th>Qtd.</th>
+            <th>Preço unit.</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="corpo-carrinho">
+          <tr id="linha-vazia">
+            <td colspan="6" class="carrinho-vazio">Nenhum item ainda — digite um código acima.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <aside class="terminal-resumo">
+      <div class="recibo">
+        <div class="recibo-linha recibo-total">
+          <span>Total</span>
+          <span id="valor-total">R$ 0,00</span>
+        </div>
+        <hr>
+        <p class="rotulo-pagamento">Forma de pagamento</p>
+        <div class="opcoes-pagamento" id="opcoes-pagamento">
+          <button type="button" class="opcao-pagamento" data-forma="dinheiro">Dinheiro</button>
+          <button type="button" class="opcao-pagamento" data-forma="pix">Pix</button>
+          <button type="button" class="opcao-pagamento" data-forma="cartao">Cartão</button>
+          <button type="button" class="opcao-pagamento" data-forma="vale_refeicao">Vale-refeição</button>
+        </div>
+        <button type="button" id="botao-finalizar" class="botao-entrar" disabled>
+          Finalizar venda
+        </button>
+        <div id="mensagem-venda" class="mensagem-scanner"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="modal-quantidade" class="modal-overlay modal-oculto">
+  <div class="modal-caixa">
+    <h2 id="modal-quantidade-titulo">Selecionar quantidade</h2>
+    <p id="modal-quantidade-produto" class="modal-quantidade-produto"></p>
+    <div class="campo">
+      <label for="modal-quantidade-input">Quantidade</label>
+      <input type="number" id="modal-quantidade-input" min="1" step="1" value="1" autocomplete="off">
+    </div>
+    <div class="modal-acoes">
+      <button type="button" id="modal-quantidade-cancelar" class="botao-modal-cancelar">Cancelar</button>
+      <button type="button" id="modal-quantidade-confirmar" class="botao-entrar" style="width:auto;">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts_extra %}
+<script src="{{ url_for('static', filename='js/pdv.js') }}"></script>
+{% endblock %}
+
